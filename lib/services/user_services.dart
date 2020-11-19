@@ -1,13 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:instagram_clone/models/publication.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb;
+
 import 'package:instagram_clone/models/user.dart';
 
 class UserServices {
-  static String currentUser = "WRAjlm4sMFdMWa7Tdn5z";
+  static String currentUser = fb.FirebaseAuth.instance.currentUser.uid;
   static CollectionReference users =
       FirebaseFirestore.instance.collection('users');
-
-
 
   static Future<void> addUser(User user) {
     return users
@@ -42,6 +41,4 @@ class UserServices {
     });
     return user;
   }
-
-
 }

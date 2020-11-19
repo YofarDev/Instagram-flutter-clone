@@ -1,24 +1,39 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class User {
-  String id;
+  String id = "";
   String email;
-  String pseudo;
+  String username;
   String name;
   String picture;
-  String bio;
+  String bio = "";
   List<String> followers = [];
   List<String> following = [];
   List<String> liked = [];
   List<String> mentions = [];
+  List<String> publicationsId = [];
 
-  User(this.email, this.pseudo, this.picture, this.bio);
-  User.copyOf(User clone); 
+  User.newUser({this.email, this.username, this.name, this.picture});
+
+  User(
+      {this.id,
+      this.email,
+      this.username,
+      this.name,
+      this.picture,
+      this.bio,
+      this.followers,
+      this.following,
+      this.liked,
+      this.mentions,
+      this.publicationsId});
+
+  User.copyOf(User clone);
 
   User.fromSnapshot(DocumentSnapshot doc)
       : this.id = doc.data()['id'],
         this.email = doc.data()['email'],
-        this.pseudo = doc.data()['pseudo'],
+        this.username = doc.data()['pseudo'],
         this.name = doc.data()['name'],
         this.picture = doc.data()['picture'],
         this.bio = doc.data()['bio'],
@@ -29,7 +44,7 @@ class User {
 
   Map<String, dynamic> toMap() => {
         'email': this.email,
-        'pseudo': this.pseudo,
+        'pseudo': this.username,
         'picture': this.picture,
         'name': this.name,
         'bio': this.bio,

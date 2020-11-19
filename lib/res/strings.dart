@@ -27,6 +27,21 @@ class AppStrings {
 
   static String deleteComment = "Deleting...";
   static String deleteCommentDone = "Comment deleted !";
-  static String deleteCommentError = "Error. Try again.";
+  static String errorTryAgain = "Something went wrong... Try again !";
 
+  /// Login Page ///
+  static final String errorEmail = "Enter your email address";
+  static final String errorUsername = "Enter a correct username";
+  static final String errorPassword =
+      "Enter a password with at least 6 characters";
+  static final String errorEmailFormat = "The email address is badly formatted";
+  static final String errorSignInNoUser = "User with this email doesn't exist";
+  static final String errorSignInWrongPassword = "This password is incorrect";
+  static final String email = "Email";
+  static final String password = "Password";
+  static final String login = "Log In";
+  static final String or = "OR";
+  static final String processing = "Processing...";
+  static final String confirm = "Confirm";
+  static final String createNewAccount = "Create new account";
 }

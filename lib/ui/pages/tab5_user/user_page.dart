@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/database/publication_services.dart';
-import 'package:instagram_clone/database/user_services.dart';
+import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
@@ -40,6 +40,7 @@ class _UserPageState extends State<UserPage>
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     List<Widget> widgets = [];
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxScrolled) => [
@@ -273,7 +274,7 @@ class _UserPageState extends State<UserPage>
   _getPublications() async {
     currentUser = await _getCurrentUser();
     setState(() {
-      pseudo = currentUser.pseudo;
+      pseudo = currentUser.username;
     });
 
     List<Mention> mentions = [];

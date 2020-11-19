@@ -8,7 +8,7 @@ class Publication {
   List<String> content;
   String legend;
   List<String> likes = [];
-  List<Comment> comments = [];
+  List<String> commentsId = [];
 
   Publication(
     this.date,
@@ -48,30 +48,3 @@ class Content {
       };
 }
 
-class Comment {
-  String id;
-  String date;
-  String comment;
-  String writtenBy;
-  List<String> likes = [];
-  User writtenByUser;
-
-  Comment({this.comment, this.date, this.writtenBy});
-
-  Map<String, dynamic> toMap() => {
-        'id': this.id,
-        'comment': this.comment,
-        'date': this.date,
-        'writtenBy': this.writtenBy,
-        'likes': this.likes
-      };
-
-  Comment.fromSnapshot(DocumentSnapshot doc)
-      : this.id = doc.data()['id'],
-        this.date = doc.data()['date'],
-        this.comment = doc.data()['comment'],
-        this.writtenBy = doc.data()['writtenBy'],
-        this.likes = List.from(
-          doc.data()['likes'],
-        );
-}

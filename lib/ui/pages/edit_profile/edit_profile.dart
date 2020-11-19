@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
@@ -77,7 +77,7 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                           GestureDetector(
                             onTap: () => _onInputTap(context, 1,
-                                AppStrings.username, widget.currentUser.pseudo),
+                                AppStrings.username, widget.currentUser.username),
                             child: TextField(
                               controller: pseudoController,
                               enabled: false,
@@ -136,7 +136,7 @@ class _EditProfileState extends State<EditProfile> {
         break;
       case 1:
         {
-          userUpdated.pseudo = newValue;
+          userUpdated.username = newValue;
         }
         break;
       case 2:
@@ -149,7 +149,7 @@ class _EditProfileState extends State<EditProfile> {
 
   _initControllers() {
     nameController = TextEditingController(text: widget.currentUser.name);
-    pseudoController = TextEditingController(text: widget.currentUser.pseudo);
+    pseudoController = TextEditingController(text: widget.currentUser.username);
     bioController = TextEditingController(text: widget.currentUser.bio);
     controllers = [
       nameController,

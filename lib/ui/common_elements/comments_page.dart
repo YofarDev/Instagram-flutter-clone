@@ -1,6 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/database/comment_service.dart';
-import 'package:instagram_clone/database/user_services.dart';
+import 'package:instagram_clone/models/comment.dart';
+import 'package:instagram_clone/models/user.dart';
+import 'package:instagram_clone/services/comment_service.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
@@ -9,8 +12,9 @@ import 'package:instagram_clone/utils/utils.dart';
 
 class CommentsPage extends StatefulWidget {
   final Publication publication;
+  final User currentUser;
 
-  CommentsPage(this.publication);
+  CommentsPage({this.publication, this.currentUser});
 
   @override
   _CommentsPageState createState() => _CommentsPageState();
@@ -19,8 +23,7 @@ class CommentsPage extends StatefulWidget {
 class _CommentsPageState extends State<CommentsPage> {
   GlobalKey<ScaffoldState> _key;
   Publication _publication;
-  Future<dynamic> _comments;
-  List<bool> _likedComment = [];
+  Stream _comments;
   ScrollController _scrollController;
   TextEditingController _textController;
   List<bool> _isCommentSelected = [];
@@ -32,7 +35,8 @@ class _CommentsPageState extends State<CommentsPage> {
     super.initState();
     _key = GlobalKey<ScaffoldState>();
     _publication = widget.publication;
-    _comments = _loadComments();
+    _comments = CommentServices.getSnapshotCommentsForPublication(
+        _publication.user.id, _publication.id);
     _scrollController = ScrollController();
     _textController = TextEditingController();
   }
@@ -131,7 +135,7 @@ class _CommentsPageState extends State<CommentsPage> {
             child: Container(
               padding: EdgeInsets.only(top: 14, right: 20, left: 4),
               child: _getRichTextForComment(
-                _publication.user.pseudo,
+                _publication.user.username,
                 _publication.legend,
               ),
             ),
@@ -140,118 +144,111 @@ class _CommentsPageState extends State<CommentsPage> {
       );
 
   /// COMMENTS LIST
-  Widget _getComments() => FutureBuilder(
-        future: _comments,
-        builder: (BuildContext context, AsyncSnapshot snapshot) {
-          if (!snapshot.hasData)
-            return LoadingWidget();
-          else
-            return Padding(
-              padding: EdgeInsets.only(
-                bottom: 5,
-              ),
-              child: ListView.builder(
-                  controller: _scrollController,
-                  itemCount: snapshot.data.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    return GestureDetector(
-                      onLongPress: () {
-                        if (snapshot.data[index].writtenByUser.id ==
-                                UserServices.currentUser &&
-                            !_deleteMode) {
-                          setState(() {
-                            _deleteMode = true;
-                            _isCommentSelected[index] = true;
-                            _commentToDelete = snapshot.data[index];
-                          });
-                        }
-                      },
-                      child: Container(
-                        color: (!_isCommentSelected[index])
-                            ? Colors.white
-                            : AppColors.blue200,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.max,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(12),
-                              child: CircleAvatar(
-                                backgroundImage: AssetImage(
-                                    snapshot.data[index].writtenByUser.picture),
-                              ),
-                            ),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    padding: EdgeInsets.only(
-                                        top: 14, right: 20, left: 4),
-                                    child: _getRichTextForComment(
-                                      snapshot.data[index].writtenByUser.pseudo,
-                                      snapshot.data[index].comment,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      top: 4,
-                                      left: 4,
-                                      bottom: 12,
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          Utils.getHowLongAgo(
-                                              snapshot.data[index].date),
-                                          style: TextStyle(color: Colors.grey),
-                                        ),
-                                        (snapshot.data[index].likes.length > 0)
-                                            ? Padding(
-                                                padding:
-                                                    EdgeInsets.only(left: 20),
-                                                child: Text(
-                                                  _getLikesStr(
-                                                      snapshot.data[index]),
-                                                  style: TextStyle(
-                                                    color: Colors.grey,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              )
-                                            : Container(),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8),
-                              child: IconButton(
-                                  icon: (_isCommentLiked(snapshot.data[index]))
-                                      ? Icon(
-                                          Icons.favorite,
-                                          size: 15,
-                                          color: Colors.red,
-                                        )
-                                      : Icon(
-                                          Icons.favorite_border_outlined,
-                                          size: 15,
-                                        ),
-                                  onPressed: () {
-                                    _likeComment(snapshot.data[index]);
-                                  }),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-            );
+  Widget _getComments() => StreamBuilder<QuerySnapshot>(
+      stream: _comments,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return LoadingWidget();
+        } else {
+          return ListView.builder(
+              controller: _scrollController,
+              itemCount: snapshot.data.docs.length,
+              itemBuilder: (BuildContext context, int index) {
+                Comment comment = Comment.fromMap(snapshot.data.docs[index].data());
+                return _buildComment(comment, index);
+              });
+        }
+      });
+
+  Widget _buildComment(Comment comment, int index) => GestureDetector(
+        onLongPress: () {
+          if (comment.writtenById ==
+                  UserServices.currentUser &&
+              !_deleteMode) {
+            setState(() {
+              _deleteMode = true;
+              _isCommentSelected[index] = true;
+              _commentToDelete = comment;
+            });
+          }
         },
+        child: Container(
+          color:
+              (!_isCommentSelected[index]) ? Colors.white : AppColors.blue200,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: EdgeInsets.all(12),
+                child: CircleAvatar(
+                  backgroundImage:
+                      AssetImage(comment.writtenByPicture),
+                ),
+              ),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(top: 14, right: 20, left: 4),
+                      child: _getRichTextForComment(
+                       comment.writtenByUsername,
+                        comment.body,
+                      ),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: 4,
+                        left: 4,
+                        bottom: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            Utils.getHowLongAgo(comment.date),
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                          (comment.likes.length > 0)
+                              ? Padding(
+                                  padding: EdgeInsets.only(left: 20),
+                                  child: Text(
+                                    _getLikesStr(comment),
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                )
+                              : Container(),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: IconButton(
+                    icon: (_isCommentLiked(comment))
+                        ? Icon(
+                            Icons.favorite,
+                            size: 15,
+                            color: Colors.red,
+                          )
+                        : Icon(
+                            Icons.favorite_border_outlined,
+                            size: 15,
+                          ),
+                    onPressed: () {
+                      _likeComment(comment);
+                    }),
+              ),
+            ],
+          ),
+        ),
       );
 
   /// COMMENT TEXT FIELD
@@ -309,40 +306,23 @@ class _CommentsPageState extends State<CommentsPage> {
       );
 
   /// ********** DATA **********
-  _loadComments() async {
-    List<Comment> comments = await CommentServices.getCommentsForPublication(
-        _publication.user.id, _publication.id);
-    // Link user to comment
-    for (Comment c in comments) {
-      c.writtenByUser = await UserServices.getUser(c.writtenBy);
-      _likedComment.add(c.likes.contains(UserServices.currentUser));
-    }
-    // Sort comments old to new
-    comments.sort((a, b) => a.date.compareTo(b.date));
-
-    _isCommentSelected = List.filled(comments.length, false);
-    int i = 0;
-    for (bool b in _isCommentSelected) print("$b - index : ${i++}");
-
-    return comments;
-  }
-
   void _addNewComment(String text) async {
     // Create Comment object
     Comment newComment = Comment(
-      comment: text,
+      body: text,
       date: DateTime.now().toString(),
-      writtenBy: UserServices.currentUser,
+      id:"",
+      likes: [],
+      writtenById: widget.currentUser.id,
+      writtenByPicture: widget.currentUser.picture ,
+      writtenByUsername: widget.currentUser.username,
     );
 
     // Add comment to database
     await CommentServices.addComment(
         _publication.user.id, _publication.id, newComment);
     FocusScope.of(context).unfocus();
-    // Reload comments from database
-    setState(() {
-      _comments = _loadComments();
-    });
+
     await Future.delayed(Duration(seconds: 2)).then((value) {
       _scrollController.animateTo(
           _scrollController.position.maxScrollExtent + 1,
@@ -391,10 +371,6 @@ class _CommentsPageState extends State<CommentsPage> {
               _publication.user.id, _publication.id, _commentToDelete.id)
           .then((value) {
         // Loading again comments and removing delete mode
-        setState(() {
-          _comments = _loadComments();
-          _deleteMode = false;
-        });
 
         // Displaying user new snackbar
         Future.delayed(Duration(seconds: 2)).then((value) {
@@ -410,7 +386,7 @@ class _CommentsPageState extends State<CommentsPage> {
 
           _key.currentState.removeCurrentSnackBar();
           _key.currentState.showSnackBar(
-            SnackBar(content: Text(AppStrings.deleteCommentError)),
+            SnackBar(content: Text(AppStrings.errorTryAgain)),
           );
         });
       });

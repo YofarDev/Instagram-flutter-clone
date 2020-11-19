@@ -29,7 +29,7 @@ class _PagesHolderState extends State<PagesHolder> {
       HomePage(controllers[0]),
       SearchPage(),
       ReelsPage(),
-     ShopPage(),
+      ShopPage(),
       UserPage(controllers[1]),
     ];
   }

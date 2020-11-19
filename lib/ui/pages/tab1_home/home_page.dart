@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/database/comment_service.dart';
-import 'package:instagram_clone/database/publication_services.dart';
-import 'package:instagram_clone/database/user_services.dart';
+import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
@@ -117,10 +116,10 @@ class _HomePageState extends State<HomePage>
 
     // To link publication and comments
     List<Publication> publications = await _getPublication(users);
-    for (Publication p in publications) p.comments = await _getComments(p);
+
 
     // To link comment and user
-    publications = await _linkCommentsAndUsers(publications);
+   // publications = await _linkCommentsAndUsers(publications);
 
     return publications;
   }
@@ -145,14 +144,9 @@ class _HomePageState extends State<HomePage>
     return publications;
   }
 
-  _getComments(Publication publication) async =>
-      await CommentServices.getCommentsForPublication(
-          publication.user.id, publication.id);
 
-  _linkCommentsAndUsers(List<Publication> publications) async {
-    for (Publication p in publications) if (p.comments.isNotEmpty) for (Comment c in p.comments) c.writtenByUser = await UserServices.getUser(c.writtenBy);
-    return publications;
-  }
+
+
 
   refreshFeed() async {
     refreshKey.currentState?.show(atTop: true);

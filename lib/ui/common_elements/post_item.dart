@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/database/publication_services.dart';
-import 'package:instagram_clone/database/user_services.dart';
+import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/ui/common_elements/comments_page.dart';
-import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/content_slider.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
 import 'package:instagram_clone/utils/utils.dart';
@@ -18,14 +17,12 @@ class PostItem extends StatefulWidget {
 
 class _PostItemState extends State<PostItem> {
   Publication publication;
- List<Comment> comments = [];
   bool liked;
 
   @override
   void initState() {
     super.initState();
     publication = widget.publication;
-    comments = widget.publication.comments;
     liked = _getLikeState();
   }
 
@@ -70,7 +67,7 @@ class _PostItemState extends State<PostItem> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              publication.user.pseudo,
+              publication.user.username,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -130,7 +127,8 @@ class _PostItemState extends State<PostItem> {
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                  return CommentsPage(publication);
+                      return null;
+                  //return CommentsPage(publication, currentUser: ,);
                 }));
               },
             ),
@@ -178,7 +176,7 @@ class _PostItemState extends State<PostItem> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             children: [
               Text(
-                publication.user.pseudo,
+                publication.user.username,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -194,9 +192,6 @@ class _PostItemState extends State<PostItem> {
               )),
             ],
           ),
-          (comments.isNotEmpty)
-              ? Text(comments[0].comment)
-              : Container(),
         ],
       ),
     );

@@ -7,7 +7,6 @@ import 'package:instagram_clone/res/color_filters.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/test.dart';
 
 ///The PhotoFilterSelector Widget for apply filter from a selected set of filters
 class FilterSelectorPage extends StatefulWidget {
@@ -157,8 +156,6 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
         await boxImage.toByteData(format: ui.ImageByteFormat.png);
     Uint8List uint8list = byteData.buffer.asUint8List();
     Navigator.of(_globalKey.currentContext).push(MaterialPageRoute(
-        builder: (context) => Testo(
-              uint8list,
-            )));
+        builder: (context) => null));
   }
 }

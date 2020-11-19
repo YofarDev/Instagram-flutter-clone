@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:instagram_clone/database/user_services.dart';
+
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/utils/utils.dart';
@@ -11,22 +11,22 @@ class FakeData {
   static CollectionReference users =
       FirebaseFirestore.instance.collection('users');
 
-  static List<User> getUsers = [
-    User(
-      "mail",
-      "zemmourofficial",
-      "assets/images/igp1.jpg",
-      "Fuck le grand remplacement",
-    ),
-    User(
-      "mail",
-      "polanski.nautik",
-      "assets/images/igp2.jpeg",
-      "Popular realisator until I raped a kid",
-    ),
-    User("me", "yofaraway", "assets/images/igp3.jpg",
-        "Traveling around \bProfesionnal photographer (absolument pas)"),
-  ];
+  static List<User> getUsers = [];
+  //   User(
+  //     "mail",
+  //     "zemmourofficial",
+  //     "assets/images/igp1.jpg",
+  //     "Fuck le grand remplacement",
+  //   ),
+  //   User(
+  //     "mail",
+  //     "polanski.nautik",
+  //     "assets/images/igp2.jpeg",
+  //     "Popular realisator until I raped a kid",
+  //   ),
+  //   User("me", "yofaraway", "assets/images/igp3.jpg",
+  //       "Traveling around \bProfesionnal photographer (absolument pas)"),
+  // ];
 
   static List<Publication> getPublications = [
     Publication(
