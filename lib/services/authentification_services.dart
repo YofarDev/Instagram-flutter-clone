@@ -56,7 +56,11 @@ class AuthenticationService {
   }
 
   Future<String> signUp(
-      {String email, String username, String password, String picture, GlobalKey<ScaffoldState> key}) async {
+      {String email,
+      String username,
+      String password,
+      String picture,
+      GlobalKey<ScaffoldState> key}) async {
     key.currentState.showSnackBar(SnackBar(
       content: Text(
         AppStrings.processing,
@@ -66,8 +70,7 @@ class AuthenticationService {
       await _firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
       UserServices.addUser(
-        User.newUser(email: email, name: username, username: username, picture:picture)
-      );
+          User.newUser(id: fb.FirebaseAuth.instance.currentUser.uid,email: email, name: username, username: username));
       return "Signed up";
     } on fb.FirebaseAuthException catch (e) {
       if (e.message == "The email address is badly formatted.")

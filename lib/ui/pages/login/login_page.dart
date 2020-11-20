@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_signin_button/flutter_signin_button.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/authentification_services.dart';
+import 'package:instagram_clone/services/media_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/pages/login/register_page.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       key: scaffoldKey,
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -47,8 +52,8 @@ class _LoginPageState extends State<LoginPage> {
           onTap: () => {
             context.read<AuthenticationService>().signIn(
                   key: scaffoldKey,
-                  email: "test@test.com",
-                  password: "testtest",
+                  email: "admin@mail.com",
+                  password: "pass1234",
                 )
           },
           child: Image.asset(
@@ -185,16 +190,13 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _onEmailButtonPressed() {
-    // FocusScope.of(context).unfocus();
-    // setState(() => checkFields());
-    // if (!_emptyEmail && !_incorrectPassword)
-    //   context.read<AuthenticationService>().signUp(
-    //         email: _emailController.text.trim(),
-    //         password: _passwordController.text.trim(),
-    //         key: scaffoldKey,
-    //       );
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (context) => RegisterPage(),
-    ));
+    Navigator.of(context)
+        .push(MaterialPageRoute(builder: (context) => RegisterPage()))
+        .then((value) => _uploadPicture(
+            value)); // Need to upload the image from there to get the uid of the new user
   }
+
+  void _uploadPicture(File file) => (file != null)
+      ? MediaServices.uploadProfilePicture(file, UserServices.currentUser)
+      : print("no picture");
 }

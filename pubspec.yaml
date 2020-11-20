@@ -39,6 +39,7 @@ dependencies:
   image:
   image_crop:
   image_picker:
+  uuid:
 
 
 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
@@ -9,52 +10,47 @@ import 'package:instagram_clone/utils/utils.dart';
 
 class PostItem extends StatefulWidget {
   final Publication publication;
-  PostItem(this.publication,);
- 
+  final User currentUser;
+
+  PostItem({this.publication, this.currentUser});
+
   @override
   _PostItemState createState() => _PostItemState();
 }
 
 class _PostItemState extends State<PostItem> {
-  Publication publication;
-  bool liked;
+  Publication _publication;
+  User _currentUser;
+  bool _liked;
 
   @override
   void initState() {
     super.initState();
-    publication = widget.publication;
-    liked = _getLikeState();
+    _publication = widget.publication;
+    _currentUser = widget.currentUser;
+    _liked = _getLikeState();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Content> contentList = _getListContent(publication.content);
+    List<Content> contentList = _getListContent(_publication.content);
     return Column(
-              children: [
-                _getTop(),
-                Container(child: _getContent(contentList)),
-                _getIconsBot(),
-                _getCommentsLayout(),
+      children: [
+        _getTop(),
+        Container(child: _getContent(contentList)),
+        _getIconsBot(),
+        _getCommentsLayout(),
 
-                /// SEPARATOR
-                Container(
-                  height: 20,
-                  color: Colors.white,
-                ),
-              ],
-            );
-         
-        }
-  
-
-  _getListContent(List<String> contents) {
-    List<Content> contentList = [];
-    for (String c in publication.content)
-      contentList.add(Utils.strToContent(c));
-    return contentList;
+        /// SEPARATOR
+        Container(
+          height: 20,
+          color: Colors.white,
+        ),
+      ],
+    );
   }
 
-  _getTop() {
+  Widget _getTop() {
     return Container(
       color: Colors.white,
       height: 60,
@@ -62,12 +58,11 @@ class _PostItemState extends State<PostItem> {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundImage: AssetImage(publication.user.picture),
-          ),
+              backgroundImage: Utils.getProfilePic(_publication.user.picture)),
           Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              publication.user.username,
+              _publication.user.username,
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -87,10 +82,8 @@ class _PostItemState extends State<PostItem> {
     else if (contentList[0].isVideo)
       return VideoPlayerWidget(contentList[0].url, false);
     else
-      return Image(
-        image: AssetImage(
-          Utils.strToContent(publication.content[0]).url,
-        ),
+      return Image.network(
+        Utils.strToItemContent(_publication.content[0]).url,
       );
   }
 
@@ -105,7 +98,7 @@ class _PostItemState extends State<PostItem> {
       child: Row(
         children: [
           IconButton(
-            icon: (liked)
+            icon: (_liked)
                 ? Icon(
                     Icons.favorite,
                     color: Colors.red,
@@ -127,8 +120,10 @@ class _PostItemState extends State<PostItem> {
               onPressed: () {
                 Navigator.of(context)
                     .push(MaterialPageRoute(builder: (context) {
-                      return null;
-                  //return CommentsPage(publication, currentUser: ,);
+                  return CommentsPage(
+                    publication: _publication,
+                    currentUser: _currentUser,
+                  );
                 }));
               },
             ),
@@ -155,17 +150,17 @@ class _PostItemState extends State<PostItem> {
 
   Widget _getCommentsLayout() {
     String like;
-    if (publication.likes.length == 1)
+    if (_publication.likes.length == 1)
       like = "1 like";
     else
-      like = publication.likes.length.toString() + " likes";
+      like = _publication.likes.length.toString() + " likes";
     return Container(
       color: Colors.white,
       padding: EdgeInsets.only(left: 16, right: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (publication.likes.length > 0)
+          if (_publication.likes.length > 0)
             Text(
               like,
               style: TextStyle(
@@ -176,7 +171,7 @@ class _PostItemState extends State<PostItem> {
             crossAxisAlignment: CrossAxisAlignment.baseline,
             children: [
               Text(
-                publication.user.username,
+                _publication.user.username,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                 ),
@@ -185,7 +180,7 @@ class _PostItemState extends State<PostItem> {
                   child: Padding(
                 padding: const EdgeInsets.only(left: 5),
                 child: Text(
-                  publication.legend,
+                  _publication.legend,
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                 ),
@@ -197,20 +192,25 @@ class _PostItemState extends State<PostItem> {
     );
   }
 
-  bool _getLikeState() =>
-      publication.likes.contains(UserServices.currentUser);
+  bool _getLikeState() => _publication.likes.contains(_currentUser.id);
 
   void _updateLike() async {
     setState(() {
-      liked = !liked;
+      _liked = !_liked;
     });
-    if (liked)
-      publication.likes.add(UserServices.currentUser);
+    if (_liked)
+      _publication.likes.add(_currentUser.id);
     else
-      publication.likes.remove(UserServices.currentUser);
+      _publication.likes.remove(_currentUser.id);
 
-    PublicationServices.updateLike(publication.user.id, publication.id, liked);
+    PublicationServices.updateLike(
+        _publication.user.id, _publication.id, _liked);
   }
 
-  
+  List<Content> _getListContent(List<String> contents) {
+    List<Content> contentList = [];
+    for (String c in _publication.content)
+      contentList.add(Utils.strToItemContent(c));
+    return contentList;
+  }
 }

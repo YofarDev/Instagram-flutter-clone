@@ -2,27 +2,24 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 
-
 class PublicationServices {
   static CollectionReference users =
-  FirebaseFirestore.instance.collection('users');
-
-
+      FirebaseFirestore.instance.collection('users');
 
   static Future<void> addPublication(Publication publication) {
     CollectionReference publications =
-    users.doc(UserServices.currentUser).collection('publications');
+        users.doc(UserServices.currentUser).collection('publications');
 
     return publications
         .add(publication.toMap())
         .then((value) => publications.doc(value.id).update({'id': value.id}));
   }
 
-  static getPublicationsForUser(String id) async {
+  static Future<List<Publication>> getPublicationsForUser(String id) async {
     List<Publication> publications = [];
     await users.doc(id).collection('publications').get().then((query) {
       query.docs.forEach((value) {
-        publications.add(Publication.fromSnapshot(value));
+        publications.add(Publication.fromMap(value.data()));
       });
     });
 
@@ -37,7 +34,7 @@ class PublicationServices {
         .doc(publicationId)
         .get()
         .then((value) {
-      publication = Publication.fromSnapshot(value);
+      publication = Publication.fromMap(value.data());
     });
 
     return publication;
@@ -45,7 +42,7 @@ class PublicationServices {
 
   static updateLike(String userId, String publicationId, bool liked) async {
     CollectionReference publications =
-    users.doc(userId).collection('publications');
+        users.doc(userId).collection('publications');
 
     if (liked) {
       await publications.doc(publicationId).update({
@@ -63,6 +60,4 @@ class PublicationServices {
       });
     }
   }
-
-
 }

@@ -1,17 +1,24 @@
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:flutter/material.dart';
 
 class Utils {
   ///*** OBJECTS TO STRING ***///
   /// CONTENT ///
-  static String contentToStr(Content content) =>
+  static String itemContentToStr(Content content) =>
       "${content.isVideo}||${content.url}||${content.aspectRatio}";
 
-  static Content strToContent(String c) {
+  static Content strToItemContent(String c) {
     List<String> list = c.replaceAll(' ', '').split('||');
     bool b = list[0] == 'true' ? true : false;
-    return (Content(b, list[1], list[2]));
+    return (Content(
+      b,
+      list[1],
+      double.parse(
+        list[2],
+      ),
+    ));
   }
 
   /// MENTION ////
@@ -64,4 +71,8 @@ class Utils {
 
     return howLongAgo;
   }
+
+  static getProfilePic(String url) => (url.isNotEmpty)
+      ? NetworkImage(url)
+      : AssetImage("assets/images/default-profile.png");
 }

@@ -19,7 +19,7 @@ class _ContentSliderState extends State<ContentSlider> {
       CarouselSlider(
         items: content,
         options: CarouselOptions(
-            aspectRatio: double.parse(widget.contentList[0].aspectRatio),
+            aspectRatio: widget.contentList[0].aspectRatio,
             viewportFraction: 1.0,
             pageSnapping: false,
             disableCenter: true,

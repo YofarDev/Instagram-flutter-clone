@@ -44,4 +44,16 @@ class AppStrings {
   static final String processing = "Processing...";
   static final String confirm = "Confirm";
   static final String createNewAccount = "Create new account";
+
+  static final String emptyProfile =
+      "When you share photos and videos, they'll appear on your profile.";
+  static final String profile = "Profile";
+  static final String emptyProfileShare = "Share your first photo or video";
+  static final String mentions = "Photos and Videos of you";
+  static final String mentionsEmpty =
+      "When people tag you in photos and videos, they'll appear here.";
+
+  static final String emptyGallery =
+      "You don't have any photos or videos in your gallery.";
+  static final String caption = "Write a caption...";
 }

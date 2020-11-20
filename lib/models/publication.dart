@@ -2,42 +2,52 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/models/user.dart';
 
 class Publication {
-  String id;
-  User user;
+  String id = "";
+  String userId;
   String date;
-  List<String> content;
   String legend;
+  List<String> content;
   List<String> likes = [];
   List<String> commentsId = [];
+  User user;
 
   Publication(
-    this.date,
-    this.content,
-    this.legend,
-  );
+      {this.id,
+      this.userId,
+      this.date,
+      this.legend,
+      this.content,
+      this.likes,
+      this.commentsId});
 
-  Publication.fromSnapshot(DocumentSnapshot doc)
-      : this.id = doc.data()['id'],
-        this.date = doc.data()['date'],
-        this.content = List.from(doc.data()['content']),
-        this.legend = doc.data()['legend'],
-        this.likes = List.from(
-          doc.data()['likes'],
-        );
+  Publication.newPublication(
+      {this.userId, this.date, this.content, this.legend});
+
+  factory Publication.fromMap(Map<String, dynamic> map) => Publication(
+        id: map['id'] as String,
+        userId: map['userId'] as String,
+        date: map['date'] as String,
+        legend: map['legend'] as String,
+        content: List.from(map['content']),
+        likes: List.from(map['likes']),
+        commentsId: List.from(map['commentsId']),
+      );
 
   Map<String, dynamic> toMap() => {
         'id': this.id,
+        'userId': this.userId,
         'date': this.date,
-        'content': this.content,
         'legend': this.legend,
+        'content': this.content,
         'likes': this.likes,
+        'commentsId': this.commentsId,
       };
 }
 
 class Content {
   bool isVideo;
   String url;
-  String aspectRatio;
+  double aspectRatio;
 
   Content(this.isVideo, this.url, this.aspectRatio);
 
@@ -47,4 +57,3 @@ class Content {
         'aspectRatio': this.aspectRatio,
       };
 }
-

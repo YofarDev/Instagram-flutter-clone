@@ -7,6 +7,7 @@ import 'package:instagram_clone/res/color_filters.dart';
 import 'package:flutter/services.dart';
 import 'dart:ui' as ui;
 
+import 'package:instagram_clone/ui/pages/tab1_home/img_picker/publication_info_page.dart';
 
 ///The PhotoFilterSelector Widget for apply filter from a selected set of filters
 class FilterSelectorPage extends StatefulWidget {
@@ -44,6 +45,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
     return SafeArea(
       child: Scaffold(
         appBar: AppBar(
+          elevation: 0,
           backgroundColor: Colors.white,
           leading: IconButton(
             icon: Icon(
@@ -59,7 +61,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
                 color: Colors.blue,
               ),
               onPressed: () async {
-                convertWidgetToImage();
+                _convertWidgetToImage();
               },
             )
           ],
@@ -87,14 +89,14 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
                       ),
               ),
             ),
-            getThumbnails(context)
+            _getThumbnails(context)
           ],
         ),
       ),
     );
   }
 
-  getThumbnails(
+  Widget _getThumbnails(
     BuildContext context,
   ) {
     return Container(
@@ -117,7 +119,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
                 Container(
                   padding: EdgeInsets.only(top: 5),
                   child: GestureDetector(
-                    child: getFilteredImages()[index],
+                    child: _getFilteredImages()[index],
                     onTap: () {
                       setState(() {
                         selected = index;
@@ -133,7 +135,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
     );
   }
 
-  getFilteredImages() {
+ List<Widget> _getFilteredImages() {
     List<Widget> list = [];
     list.add(Image.file(File(file.path), width: 100, height: 100));
 
@@ -148,14 +150,17 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
     return list;
   }
 
-  void convertWidgetToImage() async {
+  void _convertWidgetToImage() async {
     RenderRepaintBoundary repaintBoundary =
         _globalKey.currentContext.findRenderObject();
     ui.Image boxImage = await repaintBoundary.toImage(pixelRatio: 1);
     ByteData byteData =
         await boxImage.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List uint8list = byteData.buffer.asUint8List();
-    Navigator.of(_globalKey.currentContext).push(MaterialPageRoute(
-        builder: (context) => null));
+    Uint8List imgByte = byteData.buffer.asUint8List();
+
+    List<Uint8List> medias = [];
+    medias.add(imgByte);
+    Navigator.of(_globalKey.currentContext).push(
+        MaterialPageRoute(builder: (context) => PublicationInfoPage(medias)));
   }
 }

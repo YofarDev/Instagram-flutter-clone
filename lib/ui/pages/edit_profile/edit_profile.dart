@@ -4,6 +4,7 @@ import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/pages/edit_profile/edit_app_bar.dart';
 import 'package:instagram_clone/ui/pages/edit_profile/screen_input.dart';
+import 'package:instagram_clone/utils/utils.dart';
 
 class EditProfile extends StatefulWidget {
   final User currentUser;
@@ -13,16 +14,16 @@ class EditProfile extends StatefulWidget {
 }
 
 class _EditProfileState extends State<EditProfile> {
-  User userUpdated;
-  TextEditingController nameController;
-  TextEditingController pseudoController;
-  TextEditingController bioController;
-  List<TextEditingController> controllers = [];
+  User _userUpdated;
+  TextEditingController _nameController;
+  TextEditingController _usernameController;
+  TextEditingController _bioController;
+  List<TextEditingController> _controllers = [];
 
   @override
   void initState() {
     super.initState();
-    userUpdated = User.copyOf(widget.currentUser);
+    _userUpdated = User.copyOf(widget.currentUser);
     _initControllers();
   }
 
@@ -42,9 +43,7 @@ class _EditProfileState extends State<EditProfile> {
                 child: Column(
                   children: [
                     CircleAvatar(
-                      backgroundImage: AssetImage(
-                        widget.currentUser.picture,
-                      ),
+                      backgroundImage: Utils.getProfilePic(widget.currentUser.picture),
                       radius: 50,
                     ),
                     Padding(
@@ -65,7 +64,7 @@ class _EditProfileState extends State<EditProfile> {
                             onTap: () => _onInputTap(context, 0,
                                 AppStrings.name, widget.currentUser.name),
                             child: TextField(
-                              controller: nameController,
+                              controller: _nameController,
                               enabled: false,
                             ),
                           ),
@@ -79,7 +78,7 @@ class _EditProfileState extends State<EditProfile> {
                             onTap: () => _onInputTap(context, 1,
                                 AppStrings.username, widget.currentUser.username),
                             child: TextField(
-                              controller: pseudoController,
+                              controller: _usernameController,
                               enabled: false,
                             ),
                           ), 
@@ -96,7 +95,7 @@ class _EditProfileState extends State<EditProfile> {
                                keyboardType: TextInputType.multiline,
                               maxLines: null,
                               
-                              controller: bioController,
+                              controller: _bioController,
                               enabled: false,
                             ),
                           ),
@@ -122,7 +121,7 @@ class _EditProfileState extends State<EditProfile> {
         transitionDuration: Duration(seconds: 0),
       ),
     ).then((value) {
-      controllers[index].text = value;
+      _controllers[index].text = value;
       _updateUser(index, value);
     });
   }
@@ -131,30 +130,30 @@ class _EditProfileState extends State<EditProfile> {
     switch (index) {
       case 0:
         {
-          userUpdated.name = newValue;
+          _userUpdated.name = newValue;
         }
         break;
       case 1:
         {
-          userUpdated.username = newValue;
+          _userUpdated.username = newValue;
         }
         break;
       case 2:
         {
-          userUpdated.bio = newValue;
+          _userUpdated.bio = newValue;
         }
         break;
     }
   }
 
   _initControllers() {
-    nameController = TextEditingController(text: widget.currentUser.name);
-    pseudoController = TextEditingController(text: widget.currentUser.username);
-    bioController = TextEditingController(text: widget.currentUser.bio);
-    controllers = [
-      nameController,
-      pseudoController,
-      bioController,
+    _nameController = TextEditingController(text: widget.currentUser.name);
+    _usernameController = TextEditingController(text: widget.currentUser.username);
+    _bioController = TextEditingController(text: widget.currentUser.bio);
+    _controllers = [
+      _nameController,
+      _usernameController,
+      _bioController,
     ];
   }
 }

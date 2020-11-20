@@ -10,6 +10,7 @@ class UserNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
+      backgroundColor: Colors.white,
       elevation: 0,
       onTap: (n) => onTabChange(n),
     

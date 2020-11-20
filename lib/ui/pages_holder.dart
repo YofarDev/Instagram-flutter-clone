@@ -37,6 +37,7 @@ class _PagesHolderState extends State<PagesHolder> {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
+      backgroundColor: Colors.white,
       body: PageView(
         controller: _pageController,
         children: _screens,

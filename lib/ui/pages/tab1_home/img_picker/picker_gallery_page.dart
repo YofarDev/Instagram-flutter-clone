@@ -5,9 +5,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_crop/image_crop.dart';
 import 'package:instagram_clone/models/media_file.dart';
+import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/img_picker/filter_selector_page.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/picker_app_bar.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -16,19 +16,19 @@ class PickerGalleryPage extends StatefulWidget {
 }
 
 class _PickerGalleryPageState extends State<PickerGalleryPage> {
-  final cropKey = GlobalKey<CropState>();
-  final ScrollController controller = ScrollController();
-  Future<dynamic> medias;
-  MediaFile media;
-  AssetPathEntity selectedFolder;
-  List<MediaFile> folderFiles;
+  final _cropKey = GlobalKey<CropState>();
+  final ScrollController _scrollController = ScrollController();
+  Future<dynamic> _medias;
+  MediaFile _media;
+  AssetPathEntity _selectedFolder;
+  List<MediaFile> _folderFiles;
 
   @override
   void initState() {
     super.initState();
-    medias = getMediasList();
-    folderFiles = [];
-    controller..addListener(() => scrollListener());
+    _medias = _getMediasList();
+    _folderFiles = [];
+    _scrollController..addListener(() => _scrollListener());
   }
 
   @override
@@ -36,10 +36,13 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     return Scaffold(
       body: SafeArea(
         child: FutureBuilder(
-          future: medias,
+          future: _medias,
           builder: (BuildContext context, AsyncSnapshot snapshot) {
             if (snapshot.hasData) {
-              return _widgets(snapshot);
+              if (snapshot.data.isEmpty)
+                return _emptyGallery();
+              else
+                return _getWidgets(snapshot);
             } else
               return LoadingWidget();
           },
@@ -48,21 +51,21 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     );
   }
 
-  _widgets(AsyncSnapshot snapshot) {
+  Widget _getWidgets(AsyncSnapshot snapshot) {
     return Column(
       children: <Widget>[
-        PickerAppBar(() => onNextTap()),
+        _appBar(),
 
-        /// THUMBMAIL
+        /// THUMBNAIL
         Container(
             height: MediaQuery.of(context).size.width,
-            child: media != null
-                ? (media.isVideo)
-                    ? VideoPlayerWidget(media.path, true)
+            child: _media != null
+                ? (_media.isVideo)
+                    ? VideoPlayerWidget(_media.path, true)
                     : Crop(
                         maximumScale: 2,
-                        key: cropKey,
-                        image: FileImage(File(media.path)),
+                        key: _cropKey,
+                        image: FileImage(File(_media.path)),
                         aspectRatio: 1,
                       )
                 : Container()),
@@ -75,21 +78,21 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                 height: 50,
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton(
-                    items: getDropdownItems(snapshot.data),
+                    items: _getDropdownItems(snapshot.data),
                     onChanged: (assetPathEntity) {
-                      setSelectedFolder(assetPathEntity);
+                      _setSelectedFolder(assetPathEntity);
                       setState(() {
-                        selectedFolder = assetPathEntity;
+                        _selectedFolder = assetPathEntity;
                       });
                     },
-                    value: selectedFolder,
+                    value: _selectedFolder,
                   ),
                 )),
           ],
         ),
 
         /// LIST GALLERY
-        folderFiles.isEmpty
+        _folderFiles.isEmpty
             ? Container()
             : Expanded(
                 child: GridView.builder(
@@ -97,9 +100,9 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                       crossAxisCount: 4,
                       crossAxisSpacing: 4,
                       mainAxisSpacing: 4),
-                  controller: controller,
+                  controller: _scrollController,
                   itemBuilder: (context, i) {
-                    Uint8List thumb = folderFiles[i].thumb;
+                    Uint8List thumb = _folderFiles[i].thumb;
                     return GestureDetector(
                       child: Image.memory(
                         thumb,
@@ -107,31 +110,83 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                       ),
                       onTap: () {
                         setState(() {
-                          media = folderFiles[i];
+                          _media = _folderFiles[i];
                         });
                       },
                     );
                   },
-                  itemCount: folderFiles.length,
+                  itemCount: _folderFiles.length,
                 ),
               )
       ],
     );
   }
 
-  Future<List<AssetPathEntity>> getMediasList() async {
+  Widget _appBar()=>AppBar(
+    backgroundColor: Colors.white,
+    elevation: 0,
+    iconTheme: IconThemeData(color: Colors.black),
+    title: Text(
+      AppStrings.newPost,
+      style: TextStyle(color: Colors.black),
+    ),
+    leading: IconButton(
+      icon: Icon(
+        Icons.clear,
+      ),
+      onPressed: () => Navigator.of(context).pop(),
+    ),
+    actions: [
+      IconButton(
+          icon: Icon(
+            Icons.arrow_forward,
+            color: Colors.blue,
+          ),
+          onPressed: ()=> _onNextTap())
+    ],
+  );
+
+  Widget _emptyGallery() => Column(
+        children: [
+          AppBar(
+            elevation: 0,
+            backgroundColor: Colors.white,
+            leading: IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: Icon(Icons.arrow_back),
+              color: Colors.black,
+            ),
+          ),
+          Align(
+            child: Padding(
+              padding: EdgeInsets.only(top: 200, left:20, right:20,),
+              child: Text(
+                AppStrings.emptyGallery,
+                style: TextStyle(
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+
+  Future<List<AssetPathEntity>> _getMediasList() async {
     var result = await PhotoManager.requestPermission();
     if (result)
       return await PhotoManager.getAssetPathList().then((value) {
-        selectedFolder = value[0];
-        setSelectedFolder(value[0]);
-        return value;
+        if (value.isNotEmpty) {
+          _selectedFolder = value[0];
+          _setSelectedFolder(value[0]);
+          return value;
+        } else
+          return [];
       });
     else
       return null;
   }
 
-  getDropdownItems(List<AssetPathEntity> list) {
+  List<DropdownMenuItem> _getDropdownItems(List<AssetPathEntity> list) {
     return list.map((e) {
           return DropdownMenuItem(
             value: e,
@@ -147,19 +202,15 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
         [];
   }
 
-  getFolderChildren(AssetPathEntity folder) async => await folder.assetList;
-
-  getFile(AssetEntity entity) async => await entity.file;
-
-  setSelectedFolder(AssetPathEntity folder) async {
-    List<MediaFile> files = await loadData(folder, 0);
+  void _setSelectedFolder(AssetPathEntity folder) async {
+    List<MediaFile> files = await _loadData(folder, 0);
     setState(() {
-      folderFiles = files;
-      media = folderFiles[0];
+      _folderFiles = files;
+      _media = _folderFiles[0];
     });
   }
 
-  loadData(AssetPathEntity folder, int range) async {
+  Future<List<MediaFile>> _loadData(AssetPathEntity folder, int range) async {
     List<AssetEntity> children =
         await folder.getAssetListRange(start: range, end: range + 36);
     List<MediaFile> files = [];
@@ -178,19 +229,18 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     return files;
   }
 
-  loadMore() async {
-    int range = folderFiles.length;
-    List<MediaFile> files = await loadData(selectedFolder, range);
+  void _loadMore() async {
+    int range = _folderFiles.length;
+    List<MediaFile> files = await _loadData(_selectedFolder, range);
     setState(() {
-      folderFiles.addAll(files);
+      _folderFiles.addAll(files);
     });
   }
 
-  onNextTap() async {
-    if (media.isVideo) {
-      
+  void _onNextTap() async {
+    if (_media.isVideo) {
     } else {
-      File file = await getCroppedImage();
+      File file = await _getCroppedImage();
       Navigator.push(
           context,
           new MaterialPageRoute(
@@ -201,10 +251,10 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     }
   }
 
-  getCroppedImage() async {
-    final crop = cropKey.currentState;
+  Future<File> _getCroppedImage() async {
+    final crop = _cropKey.currentState;
     final sampledFile = await ImageCrop.sampleImage(
-      file: File(media.path),
+      file: File(_media.path),
       preferredSize: (1200 / crop.scale).round(),
     );
 
@@ -216,8 +266,8 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     return croppedFile;
   }
 
-  scrollListener() {
-    if (controller.position.pixels == controller.position.maxScrollExtent)
-      loadMore();
+  void _scrollListener() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) _loadMore();
   }
 }

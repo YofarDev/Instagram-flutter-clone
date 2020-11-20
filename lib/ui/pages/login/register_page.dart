@@ -8,6 +8,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/authentification_services.dart';
+import 'package:instagram_clone/services/media_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -208,25 +210,22 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  void _onConfirmPressed() {
+  void _onConfirmPressed() async {
     FocusScope.of(context).unfocus();
     setState(() => checkFields());
-    if (!_emptyEmail && !_incorrectPassword && !_emptyUsername) {
-      String picture = "";
-      if (_image != null) picture = _uploadImage();
 
-      context.read<AuthenticationService>().signUp(
+    if (!_emptyEmail && !_incorrectPassword && !_emptyUsername) {
+      await context.read<AuthenticationService>().signUp(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
             username: _usernameController.text.trim(),
             key: scaffoldKey,
           );
+      
+     Navigator.of(context).pop(_image);
     }
   }
 
-  String _uploadImage() {
-    return "";
-  }
 
   Future getImage() async {
     final pickedFile = await picker.getImage(source: ImageSource.gallery);

@@ -14,24 +14,25 @@ import 'package:instagram_clone/utils/utils.dart';
 
 class UserPage extends StatefulWidget {
   _UserPageState createState() => _UserPageState();
-  final ScrollController scroll;
-  UserPage(this.scroll);
+  final ScrollController scrollController;
+
+  UserPage(this.scrollController);
 }
 
 class _UserPageState extends State<UserPage>
     with AutomaticKeepAliveClientMixin {
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   Future<dynamic> _publicationsWidgets;
-  User currentUser;
-  String pseudo;
-  List<Publication> mentionsList = [];
-  int currentPage = 0;
-  int posts = 0;
+  User _currentUser;
+  String _username;
+  List<Publication> _mentionsList = [];
+  int _currentPage = 0;
+  int _posts = 0;
 
   @override
   void initState() {
     super.initState();
-    pseudo = "";
+    _username = "";
     _publicationsWidgets = _getPublications();
   }
 
@@ -44,7 +45,7 @@ class _UserPageState extends State<UserPage>
     List<Widget> widgets = [];
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxScrolled) => [
-        UserAppBar(pseudo),
+        UserAppBar(_username),
       ],
       body: FutureBuilder(
         future: _publicationsWidgets,
@@ -61,17 +62,21 @@ class _UserPageState extends State<UserPage>
             widgets = [
               _headerCollapse(),
               _tabs(),
-              _outlinesTabs(context),
-              (currentPage == 0)
-                  ? _gridPublications(snapshot.data)
-                  : _gridPublications(mentionsList),
+              _outlinedTabs(context),
+              (_currentPage == 0)
+                  ? (snapshot.data.isEmpty)
+                      ? _emptyTabPublications()
+                      : _gridPublications(snapshot.data)
+                  : (snapshot.data.isEmpty)
+                      ? _emptyTabMentions()
+                      : _gridPublications(_mentionsList),
             ];
           }
           return RefreshIndicator(
             key: refreshKey,
-            onRefresh: () => refreshlist(),
+            onRefresh: () => refreshList(),
             child: CustomScrollView(
-              controller: widget.scroll,
+              controller: widget.scrollController,
               slivers: widgets,
             ),
           );
@@ -80,7 +85,9 @@ class _UserPageState extends State<UserPage>
     );
   }
 
-  _headerCollapse() {
+  ///*** UI ***///
+
+  Widget _headerCollapse() {
     double fontSizeTop = 20;
     double fontSizeBot = 16;
     return SliverToBoxAdapter(
@@ -95,13 +102,13 @@ class _UserPageState extends State<UserPage>
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage(currentUser.picture),
+                  backgroundImage: Utils.getProfilePic(_currentUser.picture),
                   radius: 50,
                 ),
                 Column(
                   children: [
                     Text(
-                      posts.toString(),
+                      _posts.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: fontSizeTop),
                     ),
@@ -114,7 +121,7 @@ class _UserPageState extends State<UserPage>
                 Column(
                   children: [
                     Text(
-                      currentUser.followers.length.toString(),
+                      _currentUser.followers.length.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: fontSizeTop),
                     ),
@@ -127,7 +134,7 @@ class _UserPageState extends State<UserPage>
                 Column(
                   children: [
                     Text(
-                      currentUser.following.length.toString(),
+                      _currentUser.following.length.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: fontSizeTop),
                     ),
@@ -147,12 +154,12 @@ class _UserPageState extends State<UserPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Utils.uppercaseFirstLetter(currentUser.name),
+                    Utils.uppercaseFirstLetter(_currentUser.name),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(currentUser.bio),
+                  Text(_currentUser.bio),
                 ],
               ),
             ),
@@ -165,7 +172,7 @@ class _UserPageState extends State<UserPage>
                 onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) {
-                    return EditProfile(currentUser);
+                    return EditProfile(_currentUser);
                   }),
                 ).then((value) {
                   if (value == "noUpdate") print(value);
@@ -179,11 +186,11 @@ class _UserPageState extends State<UserPage>
     );
   }
 
-  _tabs() {
+  Widget _tabs() {
     return SliverPersistentHeader(
       delegate: PersistentHeader(
         widget: UserNavBar(
-          currentPage: currentPage,
+          currentPage: _currentPage,
           onTabChange: (int selected) => onTabChanged(selected),
         ),
       ),
@@ -191,7 +198,7 @@ class _UserPageState extends State<UserPage>
     );
   }
 
-  _outlinesTabs(BuildContext context) {
+  Widget _outlinedTabs(BuildContext context) {
     double width = (MediaQuery.of(context).size.width) / 2;
     return SliverToBoxAdapter(
         child: Row(
@@ -199,19 +206,19 @@ class _UserPageState extends State<UserPage>
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          color: (currentPage == 0) ? Colors.black : Colors.white,
+          color: (_currentPage == 0) ? Colors.black : Colors.white,
           height: 1,
           width: width,
         ),
         Container(
-            color: (currentPage == 0) ? Colors.white : Colors.black,
+            color: (_currentPage == 0) ? Colors.white : Colors.black,
             height: 1,
             width: width),
       ],
     ));
   }
 
-  _gridPublications(List<Publication> publications) {
+  Widget _gridPublications(List<Publication> publications) {
     return SliverPadding(
       padding: EdgeInsets.only(top: 2),
       sliver: SliverGrid(
@@ -229,8 +236,8 @@ class _UserPageState extends State<UserPage>
                 Container(
                   width: 150,
                   height: 150,
-                  child: Image.asset(
-                      Utils.strToContent(publications[index].content[0]).url,
+                  child: Image.network(
+                      Utils.strToItemContent(publications[index].content[0]).url,
                       fit: BoxFit.cover),
                 ),
                 Container(
@@ -246,10 +253,10 @@ class _UserPageState extends State<UserPage>
     );
   }
 
-  _getPublicationIcon(Publication publication) {
+  Widget _getPublicationIcon(Publication publication) {
     List<Content> content = [];
     Widget icon;
-    for (String c in publication.content) content.add(Utils.strToContent(c));
+    for (String c in publication.content) content.add(Utils.strToItemContent(c));
     if (content.length == 1) {
       if (content[0].isVideo)
         icon = Icon(
@@ -268,45 +275,126 @@ class _UserPageState extends State<UserPage>
     return icon;
   }
 
-  ///*** DATA ***///
-  _getCurrentUser() async => await UserServices.getCurrentUser();
+  Widget _emptyTabPublications() => SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(left:80, right:80),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
 
-  _getPublications() async {
-    currentUser = await _getCurrentUser();
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 60),
+                child: Text(
+                  AppStrings.profile,
+                  style: (TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 30,
+                  )),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: Text(
+                  AppStrings.emptyProfile,
+                  textAlign: TextAlign.center,
+                  style: (TextStyle(
+                    color: AppColors.darkGrey,
+                    fontSize: 16,
+                  )),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 20),
+                child: Text(
+                  AppStrings.emptyProfileShare,
+                  textAlign: TextAlign.center,
+                  style: (TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  )),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  Widget _emptyTabMentions() => SliverToBoxAdapter(
+    child: Padding(
+      padding: EdgeInsets.only(left:80, right:80),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+
+        children: [
+          Padding(
+            padding: EdgeInsets.only(top: 60),
+            child: Text(
+              AppStrings.mentions,
+              textAlign: TextAlign.center,
+              style: (TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 30,
+              )),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 20),
+            child: Text(
+              AppStrings.mentionsEmpty,
+              textAlign: TextAlign.center,
+              style: (TextStyle(
+                color: AppColors.darkGrey,
+                fontSize: 16,
+              )),
+            ),
+          ),
+
+        ],
+      ),
+    ),
+  );
+
+  ///*** DATA ***///
+  Future<dynamic> _getCurrentUser() async =>
+      await UserServices.getCurrentUser();
+
+  Future<dynamic> _getPublications() async {
+    _currentUser = await _getCurrentUser();
     setState(() {
-      pseudo = currentUser.username;
+      _username = _currentUser.username;
     });
 
     List<Mention> mentions = [];
 
     // Publications of current user
     List<Publication> publicationsList =
-        await PublicationServices.getPublicationsForUser(currentUser.id);
-    for (Publication p in publicationsList) p.user = currentUser;
-    posts = publicationsList.length;
+        await PublicationServices.getPublicationsForUser(_currentUser.id);
+    print(publicationsList.length);
+    _posts = publicationsList.length;
 
     // Publications where current user is mentionned
-    for (String mentionStr in currentUser.mentions)
+    for (String mentionStr in _currentUser.mentions)
       mentions.add(Utils.strToMention(mentionStr));
     for (Mention mention in mentions)
-      mentionsList
+      _mentionsList
           .add(await _getMention(mention.mentionBy, mention.publication));
 
     publicationsList.sort((a, b) => b.date.compareTo(a.date));
     return publicationsList;
   }
 
-  _getMention(String userId, String publicationId) async {
+  Future<dynamic> _getMention(String userId, String publicationId) async {
     return await PublicationServices.getPublication(userId, publicationId);
   }
 
-  onTabChanged(int index) {
+  void onTabChanged(int index) {
     setState(() {
-      currentPage = index;
+      _currentPage = index;
     });
   }
 
-  refreshlist() async {
+  Future<void> refreshList() async {
     refreshKey.currentState?.show(
         atTop:
             true); // change atTop to false to show progress indicator at bottom

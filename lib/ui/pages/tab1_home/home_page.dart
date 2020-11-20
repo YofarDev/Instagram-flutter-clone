@@ -5,25 +5,27 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/home_app_bar.dart';
-import 'package:instagram_clone/ui/common_elements/post_item.dart';
+import 'package:instagram_clone/ui/common_elements/publication_item.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/img_picker/picker_gallery_page.dart';
 
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
   final ScrollController scroll;
+
   HomePage(this.scroll);
 }
 
 class _HomePageState extends State<HomePage>
     with AutomaticKeepAliveClientMixin {
-  var refreshKey = GlobalKey<RefreshIndicatorState>();
-  Future<dynamic> feedWidgets;
+  var _refreshKey = GlobalKey<RefreshIndicatorState>();
+  Future<dynamic> _feedWidgets;
+  User _currentUser;
 
   @override
   void initState() {
     super.initState();
-    feedWidgets = _getFeed();
+    _feedWidgets = _getFeed();
   }
 
   @override
@@ -36,11 +38,11 @@ class _HomePageState extends State<HomePage>
     return NestedScrollView(
       headerSliverBuilder: (context, innerBoxScrolled) => [
         HomeAppBar(
-          onIconTap: (int index) => onIconTap(index),
+          onIconTap: (int index) => _onIconTap(index),
         ),
       ],
       body: FutureBuilder(
-        future: feedWidgets,
+        future: _feedWidgets,
         builder: (context, snapshot) {
           Widget feedList;
           if (!snapshot.hasData) {
@@ -70,7 +72,7 @@ class _HomePageState extends State<HomePage>
                       ),
                     ),
                     ElevatedButton(
-                      onPressed: () => refreshFeed(),
+                      onPressed: () => _refreshFeed(),
                       child: Text(AppStrings.refresh),
                     )
                   ],
@@ -80,7 +82,10 @@ class _HomePageState extends State<HomePage>
               feedList = SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    return PostItem(snapshot.data[index]);
+                    return PostItem(
+                      publication: snapshot.data[index],
+                      currentUser: _currentUser,
+                    );
                   },
                   childCount: snapshot.data.length,
                 ),
@@ -88,8 +93,8 @@ class _HomePageState extends State<HomePage>
             }
           }
           return RefreshIndicator(
-            key: refreshKey,
-            onRefresh: () => refreshFeed(),
+            key: _refreshKey,
+            onRefresh: () => _refreshFeed(),
             child: CustomScrollView(
               controller: widget.scroll,
               slivers: <Widget>[
@@ -105,28 +110,23 @@ class _HomePageState extends State<HomePage>
   _getFeed() async {
     List<User> users = [];
     // Get current user
-    User user = await UserServices.getCurrentUser();
+    _currentUser = await UserServices.getCurrentUser();
+
 
     // Get his list of following
-    for (String f in user.following)
+    for (String f in _currentUser.following)
       users.add(await UserServices.getUser(f));
-
     // To add own publications in feed :
-    users.add(user);
+    users.add(_currentUser);
 
-    // To link publication and comments
+    // Get publications from following
     List<Publication> publications = await _getPublication(users);
-
-
-    // To link comment and user
-   // publications = await _linkCommentsAndUsers(publications);
 
     return publications;
   }
 
-  _getPublication(List<User> users) async {
+  Future<List<Publication>> _getPublication(List<User> users) async {
     List<Publication> publications = [];
-
     // Get publications from all users
     for (User user in users) {
       List<Publication> publis =
@@ -138,25 +138,20 @@ class _HomePageState extends State<HomePage>
         publications.add(p);
       }
     }
-
     // Sort publications from new to old
     publications.sort((a, b) => b.date.compareTo(a.date));
     return publications;
   }
 
-
-
-
-
-  refreshFeed() async {
-    refreshKey.currentState?.show(atTop: true);
+  Future<void> _refreshFeed() async {
+    _refreshKey.currentState?.show(atTop: true);
     await Future.delayed(Duration(seconds: 2));
     setState(() {
-      feedWidgets = _getFeed();
+      _feedWidgets = _getFeed();
     });
   }
 
-  onIconTap(int index) {
+  void _onIconTap(int index) {
     switch (index) {
       case (0):
         Navigator.push(

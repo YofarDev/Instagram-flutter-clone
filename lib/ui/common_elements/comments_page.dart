@@ -26,7 +26,7 @@ class _CommentsPageState extends State<CommentsPage> {
   Stream _comments;
   ScrollController _scrollController;
   TextEditingController _textController;
-  List<bool> _isCommentSelected = [];
+  int _commentSelected;
   Comment _commentToDelete;
   bool _deleteMode = false;
 
@@ -35,8 +35,7 @@ class _CommentsPageState extends State<CommentsPage> {
     super.initState();
     _key = GlobalKey<ScaffoldState>();
     _publication = widget.publication;
-    _comments = CommentServices.getSnapshotCommentsForPublication(
-        _publication.user.id, _publication.id);
+    _comments = _getCommentsStream();
     _scrollController = ScrollController();
     _textController = TextEditingController();
   }
@@ -46,14 +45,13 @@ class _CommentsPageState extends State<CommentsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       key: _key,
       appBar: _getAppBar(context, AppStrings.comments),
       body: GestureDetector(
         onTap: () {
           setState(() {
-            if (_deleteMode)
-              _isCommentSelected =
-                  List.filled(_isCommentSelected.length, false);
+            if (_deleteMode) _commentSelected = null;
             _deleteMode = false;
             _commentToDelete = null;
           });
@@ -64,7 +62,7 @@ class _CommentsPageState extends State<CommentsPage> {
                 ? _getPublicationResume(context)
                 : Container(),
             _getSeparator(),
-            Expanded(child: _getComments()),
+            Expanded(child: _getCommentsWidget()),
             _getSeparator(),
             Align(
               child: _getTextField(),
@@ -128,23 +126,49 @@ class _CommentsPageState extends State<CommentsPage> {
           Container(
             padding: EdgeInsets.all(12),
             child: CircleAvatar(
-              backgroundImage: AssetImage(_publication.user.picture),
+              backgroundImage: Utils.getProfilePic(_publication.user.picture),
             ),
           ),
           Expanded(
-            child: Container(
-              padding: EdgeInsets.only(top: 14, right: 20, left: 4),
-              child: _getRichTextForComment(
-                _publication.user.username,
-                _publication.legend,
-              ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.only(top: 14, right: 20, left: 4),
+                  child: _getRichTextForComment(
+                    _publication.user.username,
+                    _publication.legend,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      Utils.getHowLongAgo(_publication.date),
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    (_publication.likes.length > 0)
+                        ? Padding(
+                            padding: EdgeInsets.only(left: 20),
+                            child: Text(
+                              _getLikesStr(_publication.likes.length),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          )
+                        : Container(),
+                  ],
+                ),
+              ],
             ),
           ),
         ],
       );
 
   /// COMMENTS LIST
-  Widget _getComments() => StreamBuilder<QuerySnapshot>(
+  Widget _getCommentsWidget() => StreamBuilder<QuerySnapshot>(
       stream: _comments,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -154,7 +178,8 @@ class _CommentsPageState extends State<CommentsPage> {
               controller: _scrollController,
               itemCount: snapshot.data.docs.length,
               itemBuilder: (BuildContext context, int index) {
-                Comment comment = Comment.fromMap(snapshot.data.docs[index].data());
+                Comment comment =
+                    Comment.fromMap(snapshot.data.docs[index].data());
                 return _buildComment(comment, index);
               });
         }
@@ -162,19 +187,16 @@ class _CommentsPageState extends State<CommentsPage> {
 
   Widget _buildComment(Comment comment, int index) => GestureDetector(
         onLongPress: () {
-          if (comment.writtenById ==
-                  UserServices.currentUser &&
-              !_deleteMode) {
+          if (comment.writtenById == UserServices.currentUser && !_deleteMode) {
             setState(() {
               _deleteMode = true;
-              _isCommentSelected[index] = true;
+              _commentSelected = index;
               _commentToDelete = comment;
             });
           }
         },
         child: Container(
-          color:
-              (!_isCommentSelected[index]) ? Colors.white : AppColors.blue200,
+          color: (_commentSelected == index) ? AppColors.blue200 : Colors.white,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
@@ -184,7 +206,7 @@ class _CommentsPageState extends State<CommentsPage> {
                 padding: EdgeInsets.all(12),
                 child: CircleAvatar(
                   backgroundImage:
-                      AssetImage(comment.writtenByPicture),
+                      Utils.getProfilePic(comment.writtenByPicture),
                 ),
               ),
               Expanded(
@@ -195,7 +217,7 @@ class _CommentsPageState extends State<CommentsPage> {
                     Container(
                       padding: EdgeInsets.only(top: 14, right: 20, left: 4),
                       child: _getRichTextForComment(
-                       comment.writtenByUsername,
+                        comment.writtenByUsername,
                         comment.body,
                       ),
                     ),
@@ -215,7 +237,7 @@ class _CommentsPageState extends State<CommentsPage> {
                               ? Padding(
                                   padding: EdgeInsets.only(left: 20),
                                   child: Text(
-                                    _getLikesStr(comment),
+                                    _getLikesStr(comment.likes.length),
                                     style: TextStyle(
                                       color: Colors.grey,
                                       fontWeight: FontWeight.bold,
@@ -253,30 +275,53 @@ class _CommentsPageState extends State<CommentsPage> {
 
   /// COMMENT TEXT FIELD
   Widget _getTextField() {
-    return TextField(
-      controller: _textController,
-      onSubmitted: (value) {
-        if (_textController.text.isNotEmpty) _addNewComment(value);
-      },
-      textCapitalization: TextCapitalization.sentences,
-      decoration: InputDecoration(
-          suffix: FlatButton(
-            child: Text(
-              AppStrings.post,
-              style: TextStyle(
-                color: Colors.blue,
-                fontWeight: (_textController.text.isNotEmpty)
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-              ),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: CircleAvatar(
+            backgroundImage: Utils.getProfilePic(
+              widget.currentUser.picture,
             ),
-            onPressed: () {
-              if (_textController.text.isNotEmpty)
-                _addNewComment(_textController.text);
-            },
           ),
-          hintText: AppStrings.addComment,
-          contentPadding: EdgeInsets.only(left: 10)),
+        ),
+        Expanded(
+          child: TextField(
+            maxLines: null,
+            controller: _textController,
+            autocorrect: false,
+            onChanged: (value) => setState(() {
+              // needed to update Post button
+            }),
+            onSubmitted: (value) {
+              if (_textController.text.isNotEmpty) _addNewComment(value);
+            },
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: AppStrings.addComment,
+                contentPadding: EdgeInsets.only(left: 10)),
+          ),
+        ),
+        FlatButton(
+          child: Text(
+            AppStrings.post,
+            style: TextStyle(
+              color: Colors.blue,
+              fontWeight: (_textController.text.isNotEmpty)
+                  ? FontWeight.bold
+                  : FontWeight.normal,
+            ),
+          ),
+          onPressed: (_textController.text.isNotEmpty)
+              ? () {
+                  _addNewComment(_textController.text);
+                }
+              : null,
+        ),
+      ],
     );
   }
 
@@ -306,17 +351,26 @@ class _CommentsPageState extends State<CommentsPage> {
       );
 
   /// ********** DATA **********
+
+  Stream<dynamic> _getCommentsStream() =>
+      CommentServices.getSnapshotCommentsForPublication(
+          _publication.user.id, _publication.id);
+
   void _addNewComment(String text) async {
     // Create Comment object
     Comment newComment = Comment(
       body: text,
       date: DateTime.now().toString(),
-      id:"",
+      id: "",
       likes: [],
       writtenById: widget.currentUser.id,
-      writtenByPicture: widget.currentUser.picture ,
+      writtenByPicture: widget.currentUser.picture,
       writtenByUsername: widget.currentUser.username,
     );
+
+    setState(() {
+      _textController.text = "";
+    });
 
     // Add comment to database
     await CommentServices.addComment(
@@ -346,11 +400,11 @@ class _CommentsPageState extends State<CommentsPage> {
   bool _isCommentLiked(Comment comment) =>
       comment.likes.contains(UserServices.currentUser);
 
-  String _getLikesStr(Comment comment) {
-    if (comment.likes.length == 1)
+  String _getLikesStr(int likes) {
+    if (likes == 1)
       return "1 like";
-    else if (comment.likes.length > 1)
-      return "${comment.likes.length} likes";
+    else if (likes > 1)
+      return "$likes likes";
     else
       return "";
   }
@@ -370,7 +424,10 @@ class _CommentsPageState extends State<CommentsPage> {
       await CommentServices.deleteComment(
               _publication.user.id, _publication.id, _commentToDelete.id)
           .then((value) {
-        // Loading again comments and removing delete mode
+        setState(() {
+          _deleteMode = false;
+          _commentSelected = null;
+        });
 
         // Displaying user new snackbar
         Future.delayed(Duration(seconds: 2)).then((value) {
@@ -378,8 +435,9 @@ class _CommentsPageState extends State<CommentsPage> {
           _key.currentState.showSnackBar(
             SnackBar(content: Text(AppStrings.deleteCommentDone)),
           );
+
           // On error
-        }).catchError(() {
+        }).catchError((e) {
           setState(() {
             _deleteMode = false;
           });
@@ -388,6 +446,7 @@ class _CommentsPageState extends State<CommentsPage> {
           _key.currentState.showSnackBar(
             SnackBar(content: Text(AppStrings.errorTryAgain)),
           );
+          return e;
         });
       });
     }

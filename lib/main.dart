@@ -1,9 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:instagram_clone/services/authentification_services.dart';
 import 'package:instagram_clone/ui/pages/login/login_page.dart';
+import 'package:instagram_clone/ui/pages/tab3_reels/reels_page.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +32,7 @@ class MyApp extends StatelessWidget {
           )
         ],
         child: MaterialApp(
+          theme: ThemeData(backgroundColor: Colors.white,),
           home: AuthenticationWrapper(),
           debugShowCheckedModeBanner: false,
         ));

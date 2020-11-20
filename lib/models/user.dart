@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class User {
-  String id = "";
+  String id;
   String email;
   String username;
   String name;
-  String picture;
+  String picture = "";
   String bio = "";
   List<String> followers = [];
   List<String> following = [];
@@ -13,7 +11,7 @@ class User {
   List<String> mentions = [];
   List<String> publicationsId = [];
 
-  User.newUser({this.email, this.username, this.name, this.picture});
+  User.newUser({this.id, this.email, this.username, this.name});
 
   User(
       {this.id,
@@ -28,31 +26,39 @@ class User {
       this.mentions,
       this.publicationsId});
 
+  factory User.fromMap(Map<String, dynamic> map) {
+    return new User(
+      id: map['id'] as String,
+      email: map['email'] as String,
+      username: map['username'] as String,
+      name: map['name'] as String,
+      picture: map['picture'] as String,
+      bio: map['bio'] as String,
+      followers: List.from(map['followers']),
+      following: List.from(map['following']),
+      liked:  List.from(map['liked']),
+      mentions:  List.from(map['mentions']),
+      publicationsId:  List.from(map['publicationsId']),
+    );
+  }
+
+   Map<String, dynamic> toMap() =>
+       { 'id': this.id,
+         'email': this.email,
+         'username': this.username,
+         'name': this.name,
+         'picture': this.picture,
+         'bio': this.bio,
+         'followers': this.followers,
+         'following': this.following,
+         'liked': this.liked,
+         'mentions': this.mentions,
+         'publicationsId': this.publicationsId,};
+
+
   User.copyOf(User clone);
 
-  User.fromSnapshot(DocumentSnapshot doc)
-      : this.id = doc.data()['id'],
-        this.email = doc.data()['email'],
-        this.username = doc.data()['pseudo'],
-        this.name = doc.data()['name'],
-        this.picture = doc.data()['picture'],
-        this.bio = doc.data()['bio'],
-        this.followers = List.from(doc.data()['followers']),
-        this.following = List.from(doc.data()['following']),
-        this.liked = List.from(doc.data()['liked']),
-        this.mentions = List.from(doc.data()['mentions']);
 
-  Map<String, dynamic> toMap() => {
-        'email': this.email,
-        'pseudo': this.username,
-        'picture': this.picture,
-        'name': this.name,
-        'bio': this.bio,
-        'followers': this.followers,
-        'following': this.following,
-        'liked': this.liked,
-        'mentions': this.mentions
-      };
 }
 
 class Mention {

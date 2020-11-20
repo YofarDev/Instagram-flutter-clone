@@ -29,32 +29,32 @@ class FakeData {
   // ];
 
   static List<Publication> getPublications = [
-    Publication(
-        DateTime.now().toString(),
-        [Utils.contentToStr(Content(false, "assets/images/ig1.jpg", "1.91"))],
-        "Like si ils sont cute"),
-    Publication(
-        "2020-11-08 13:04:11.835",
-        [Utils.contentToStr(Content(false, "assets/images/ig3.jpg", "1.91"))],
-        "Peace."),
-    Publication(
-        "2020-11-08 12:04:11.835",
-        [Utils.contentToStr(Content(false, "assets/images/ig2.jpg", "1"))],
-        "Délicieux"),
-    Publication(
-        "2020-10-08 12:04:11.835",
-        [
-          Utils.contentToStr(Content(false, "assets/images/ig4.jpg", "1.91")),
-          Utils.contentToStr(Content(false, "assets/images/ig5.jpg", "1.91"))
-        ],
-        "Paris"),
-    Publication(
-        "2020-10-14 12:04:11.835",
-        [
-          Utils.contentToStr(Content(false, "assets/images/ig6.png", "0.8")),
-          Utils.contentToStr(Content(false, "assets/images/ig7.png", "0.8"))
-        ],
-        "C'est moi que de bons souvenirs en cette belle après-midi à Aix"),
+    // Publication(
+    //     DateTime.now().toString(),
+    //     [Utils.contentToStr(Content(false, "assets/images/ig1.jpg", "1.91"))],
+    //     "Like si ils sont cute"),
+    // Publication(
+    //     "2020-11-08 13:04:11.835",
+    //     [Utils.contentToStr(Content(false, "assets/images/ig3.jpg", "1.91"))],
+    //     "Peace."),
+    // Publication(
+    //     "2020-11-08 12:04:11.835",
+    //     [Utils.contentToStr(Content(false, "assets/images/ig2.jpg", "1"))],
+    //     "Délicieux"),
+    // Publication(
+    //     "2020-10-08 12:04:11.835",
+    //     [
+    //       Utils.contentToStr(Content(false, "assets/images/ig4.jpg", "1.91")),
+    //       Utils.contentToStr(Content(false, "assets/images/ig5.jpg", "1.91"))
+    //     ],
+    //     "Paris"),
+    // Publication(
+    //     "2020-10-14 12:04:11.835",
+    //     [
+    //       Utils.contentToStr(Content(false, "assets/images/ig6.png", "0.8")),
+    //       Utils.contentToStr(Content(false, "assets/images/ig7.png", "0.8"))
+    //     ],
+    //     "C'est moi que de bons souvenirs en cette belle après-midi à Aix"),
   ];
 
   static populateDb() async {

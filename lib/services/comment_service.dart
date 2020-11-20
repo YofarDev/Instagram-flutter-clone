@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/models/comment.dart';
 import 'package:instagram_clone/services/user_services.dart';
 
-
 class CommentServices {
   static CollectionReference users =
       FirebaseFirestore.instance.collection('users');
@@ -27,11 +26,11 @@ class CommentServices {
         .collection('publications')
         .doc(publicationId)
         .collection('comments')
+        .orderBy('date', descending: false)
+        .limit(3)
         .get()
         .then((query) {
-      query.docs.forEach((value) {
-        //comments.add(Comment.fromSnapshot(value));
-      });
+      query.docs.forEach((value) {});
     });
     return comments;
   }
@@ -72,5 +71,6 @@ class CommentServices {
           .collection('publications')
           .doc(publicationId)
           .collection('comments')
+          .orderBy('date')
           .snapshots();
 }

@@ -9,9 +9,7 @@ class UserServices {
       FirebaseFirestore.instance.collection('users');
 
   static Future<void> addUser(User user) {
-    return users
-        .add(user.toMap())
-        .then((value) => users.doc(value.id).update({'id': value.id}));
+    return users.doc(user.id).set(user.toMap());
   }
 
   static Future<void> addFollowing(String idFollowing) {
@@ -29,7 +27,7 @@ class UserServices {
   static getCurrentUser() async {
     User user;
     await users.doc(currentUser).get().then((value) {
-      user = User.fromSnapshot(value);
+      user = User.fromMap(value.data());
     });
     return user;
   }
@@ -37,8 +35,11 @@ class UserServices {
   static getUser(String id) async {
     User user;
     await users.doc(id).get().then((value) {
-      user = User.fromSnapshot(value);
+      user = User.fromMap(value.data());
     });
     return user;
   }
+
+  static updatePicture(String url) async =>
+      users.doc(currentUser).update({'picture': url});
 }
