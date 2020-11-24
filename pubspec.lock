@@ -188,6 +188,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.0"
+  flutter_staggered_grid_view:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: eee016faa2d2b82b8021cb374e6dfdba0f63db6d
+      url: "https://github.com/BertrandBev/flutter_staggered_grid_view.git"
+    source: git
+    version: "0.3.0"
   flutter_test:
     dependency: "direct dev"
     description: flutter
@@ -345,6 +354,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.4.8"
+  photo_view:
+    dependency: "direct main"
+    description:
+      name: photo_view
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.10.3"
   plugin_platform_interface:
     dependency: transitive
     description:
@@ -413,6 +429,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.2.19-nullsafety.2"
+  timeago:
+    dependency: "direct main"
+    description:
+      name: timeago
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.0.28"
   typed_data:
     dependency: transitive
     description:
@@ -463,5 +486,5 @@ packages:
     source: hosted
     version: "4.5.1"
 sdks:
-  dart: ">=2.10.0-110 <2.11.0"
+  dart: ">=2.10.0 <2.11.0"
   flutter: ">=1.16.0 <2.0.0"

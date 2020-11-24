@@ -4,7 +4,7 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
-
+import 'package:instagram_clone/ui/pages/tab3_reels/switch_test.dart';
 
 class ReelsPage extends StatefulWidget {
   ReelsPage({Key key}) : super(key: key);
@@ -20,7 +20,7 @@ class _ReelsPageState extends State<ReelsPage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 200, left: 20, right: 20),
+      padding: const EdgeInsets.only(top: 40, left: 20, right: 20),
       child: Column(
         children: [
           Container(
@@ -49,24 +49,37 @@ class _ReelsPageState extends State<ReelsPage> {
               },
             ),
           ),
-          Container(
-              padding: EdgeInsets.all(20),
-              child:Text(test)),
+          Container(padding: EdgeInsets.all(20), child: Text(test)),
           Container(
               color: Colors.green,
               width: double.infinity,
               child: FlatButton(
-                  onPressed: () => doSomething(), child: Text("Test")))
+                  onPressed: () => doSomething(), child: Text("Test"))),
+          Container(height: 20),
+          Container(
+            width: double.infinity,
+            color: Colors.blue,
+            child: FlatButton(
+                onPressed: () {
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => SwitchTest(),
+                  ));
+                },
+                child: Text("Images test")),
+          )
         ],
       ),
     );
   }
 
   doSomething() async {
-    List<Publication> publis = [];
-    publis.addAll(await PublicationServices.getPublicationsForUser(UserServices.currentUser));
-setState(() {
-  test = publis[0].likes.contains(UserServices.currentUser).toString();
-});
+User u = await UserServices.getCurrentUser();
+u.username = "oui";
+u.name = "non";
+await UserServices.updateUserProfile(u);
+u = await UserServices.getCurrentUser();
+    setState(() {
+      test = "${u.username} et ${u.name}";
+    });
   }
 }

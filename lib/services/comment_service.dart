@@ -14,9 +14,17 @@ class CommentServices {
         .doc(publicationId)
         .collection('comments');
 
+    comments.get().then((value) => print(value.docs.length));
+
     await comments
         .add(comment.toMap())
         .then((value) => comments.doc(value.id).update({'id': value.id}));
+
+    comments.get().then((value) => users
+        .doc(userPublicationId)
+        .collection('publications')
+        .doc(publicationId)
+        .update({"commentCount": value.docs.length}));
   }
 
   static getCommentsForPublication(String userId, String publicationId) async {
@@ -60,6 +68,12 @@ class CommentServices {
         .collection('publications')
         .doc(publicationId)
         .collection('comments');
+
+    comments.get().then((value) => users
+        .doc(userPublicationId)
+        .collection('publications')
+        .doc(publicationId)
+        .update({"commentCount": value.docs.length}));
 
     return await comments.doc(commentId).delete();
   }

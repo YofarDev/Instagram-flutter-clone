@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
+import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
@@ -118,13 +119,7 @@ class _PostItemState extends State<PostItem> {
                 size: 30,
               ),
               onPressed: () {
-                Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) {
-                  return CommentsPage(
-                    publication: _publication,
-                    currentUser: _currentUser,
-                  );
-                }));
+                _openCommentPage();
               },
             ),
           ),
@@ -177,15 +172,71 @@ class _PostItemState extends State<PostItem> {
                 ),
               ),
               Expanded(
-                  child: Padding(
-                padding: const EdgeInsets.only(left: 5),
-                child: Text(
-                  _publication.legend,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 2,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 5),
+                  child: Text(
+                    _publication.legend,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
                 ),
-              )),
+              ),
             ],
+          ),
+          (_publication.commentCount != 0)
+              ? Padding(
+                  padding: EdgeInsets.only(top: 4),
+                  child: GestureDetector(
+                    onTap: (() {
+                      _openCommentPage();
+                    }),
+                    child: Text(
+                      _getCommentCountStr(_publication.commentCount),
+                      style: TextStyle(
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ),
+                )
+              : Container(),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Padding(
+                padding: EdgeInsets.only(top: 4),
+                child: CircleAvatar(
+                  backgroundImage: Utils.getProfilePic(
+                    widget.currentUser.picture,
+                  ),
+                  backgroundColor: Colors.black,
+                ),
+              ),
+              Expanded(
+                child: TextField(
+                  maxLines: null,
+                  autocorrect: false,
+                  onChanged: (value) => setState(() {
+                    // needed to update Post button
+                  }),
+                  onSubmitted: (value) {},
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: AppStrings.addComment,
+                      contentPadding: EdgeInsets.only(left: 10)),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: Text(
+              Utils.getHowLongAgoLonger(_publication.date),
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
+            ),
           ),
         ],
       ),
@@ -212,5 +263,33 @@ class _PostItemState extends State<PostItem> {
     for (String c in _publication.content)
       contentList.add(Utils.strToItemContent(c));
     return contentList;
+  }
+
+  String _getLikesStr(int likes) {
+    if (likes == 1)
+      return "1 like";
+    else if (likes > 1)
+      return "$likes likes";
+    else
+      return "";
+  }
+
+  String _getCommentCountStr(int comments) {
+    String str;
+    if (comments == 1)
+      str = "${AppStrings.viewComment1} $comments ${AppStrings.viewComment3}";
+    else
+      str =
+          "${AppStrings.viewComment1} ${AppStrings.viewComment2} $comments ${AppStrings.viewComment3}s";
+    return str;
+  }
+
+  void _openCommentPage() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+      return CommentsPage(
+        publication: _publication,
+        currentUser: _currentUser,
+      );
+    }));
   }
 }

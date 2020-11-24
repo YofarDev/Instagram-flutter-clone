@@ -94,7 +94,6 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
                   autocorrect: false,
                   controller: _textController,
                   decoration: InputDecoration(
-
                     border: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     hintText: AppStrings.caption,
@@ -137,10 +136,10 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
       );
 
       await PublicationServices.addPublication(newPublication);
-      Navigator.popUntil(
-        context,
-        (route) => route.isFirst,
-      );
+      // To remove all route and reload PagesHolder()
+      Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => PagesHolder(0)),
+          (Route<dynamic> route) => false);
     } else
       print("error uploading");
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
@@ -56,11 +57,24 @@ class _HomePageState extends State<HomePage>
           } else {
             if (snapshot.data.length == 0) {
               feedList = SliverToBoxAdapter(
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(top: 80, bottom: 40),
-                      child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 80),
+                  child: Column(
+                    children: [
+                      Container(
+                        height: 1,
+                        color: AppColors.grey1010,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 20),
+                        child: Icon(
+                          Icons.check_circle_outline,
+                          size: 60,
+                          color: Colors.green,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(top: 20),
                         child: Text(
                           AppStrings.emptyFeed,
                           textAlign: TextAlign.center,
@@ -70,12 +84,25 @@ class _HomePageState extends State<HomePage>
                           ),
                         ),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () => _refreshFeed(),
-                      child: Text(AppStrings.refresh),
-                    )
-                  ],
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          top: 20,
+                          bottom: 60,
+                        ),
+                        child: Text(
+                          AppStrings.emptyFeed2,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 1,
+                        color: AppColors.grey1010,
+                      ),
+                    ],
+                  ),
                 ),
               );
             } else {
@@ -112,7 +139,6 @@ class _HomePageState extends State<HomePage>
     // Get current user
     _currentUser = await UserServices.getCurrentUser();
 
-
     // Get his list of following
     for (String f in _currentUser.following)
       users.add(await UserServices.getUser(f));
@@ -130,7 +156,7 @@ class _HomePageState extends State<HomePage>
     // Get publications from all users
     for (User user in users) {
       List<Publication> publis =
-          await PublicationServices.getPublicationsForUser(user.id);
+          await PublicationServices.getPublicationsForUserLast48h(user.id);
 
       // To link users and publications as objects
       for (Publication p in publis) {

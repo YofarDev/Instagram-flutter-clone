@@ -16,8 +16,32 @@ class PublicationServices {
   }
 
   static Future<List<Publication>> getPublicationsForUser(String id) async {
+    // Get publications of the last 48 hours
     List<Publication> publications = [];
-    await users.doc(id).collection('publications').get().then((query) {
+    await users
+        .doc(id)
+        .collection('publications')
+        .get()
+        .then((query) {
+      query.docs.forEach((value) {
+        publications.add(Publication.fromMap(value.data()));
+      });
+    });
+
+    return publications;
+  }
+
+  static Future<List<Publication>> getPublicationsForUserLast48h(String id) async {
+    // Get publications of the last 48 hours
+    List<Publication> publications = [];
+    await users
+        .doc(id)
+        .collection('publications')
+        .where("date",
+            isGreaterThan:
+                DateTime.now().subtract(Duration(days: 2)).toString())
+        .get()
+        .then((query) {
       query.docs.forEach((value) {
         publications.add(Publication.fromMap(value.data()));
       });

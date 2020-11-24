@@ -24,7 +24,7 @@ class UserServices {
     }).then((_) => print("New followers added in db"));
   }
 
-  static getCurrentUser() async {
+  static Future<User> getCurrentUser() async {
     User user;
     await users.doc(currentUser).get().then((value) {
       user = User.fromMap(value.data());
@@ -32,7 +32,7 @@ class UserServices {
     return user;
   }
 
-  static getUser(String id) async {
+  static Future<User> getUser(String id) async {
     User user;
     await users.doc(id).get().then((value) {
       user = User.fromMap(value.data());
@@ -40,6 +40,23 @@ class UserServices {
     return user;
   }
 
+  static Future<List<User>> getUsers() async {
+    List<User> usersList = [];
+    await users.get().then((query) {
+      query.docs.forEach((element) {
+        usersList.add(User.fromMap(element.data()));
+      });
+    });
+
+    return usersList;
+  }
+
   static updatePicture(String url) async =>
       users.doc(currentUser).update({'picture': url});
+
+  static updateUserProfile(User user) async => users.doc(currentUser).update({
+        'name': user.name,
+        'username': user.username,
+        'bio': user.bio,
+      });
 }

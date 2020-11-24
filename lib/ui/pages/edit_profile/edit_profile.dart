@@ -1,29 +1,31 @@
-
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/pages/edit_profile/edit_app_bar.dart';
 import 'package:instagram_clone/ui/pages/edit_profile/screen_input.dart';
+import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
 
 class EditProfile extends StatefulWidget {
   final User currentUser;
+
   EditProfile(this.currentUser);
 
   _EditProfileState createState() => _EditProfileState();
 }
 
 class _EditProfileState extends State<EditProfile> {
-  User _userUpdated;
   TextEditingController _nameController;
   TextEditingController _usernameController;
   TextEditingController _bioController;
   List<TextEditingController> _controllers = [];
+  User _userUpdated;
 
   @override
   void initState() {
     super.initState();
-    _userUpdated = User.copyOf(widget.currentUser);
+    _userUpdated = widget.currentUser;
     _initControllers();
   }
 
@@ -33,18 +35,33 @@ class _EditProfileState extends State<EditProfile> {
         backgroundColor: Colors.white,
         body: CustomScrollView(
           slivers: [
-            EditAppBar(
-              title: AppStrings.editProfile,
-              inputText: "null",
-            ),
+            _appBar(),
             SliverToBoxAdapter(
               child: Container(
                 padding: EdgeInsets.only(top: 20),
                 child: Column(
                   children: [
                     CircleAvatar(
-                      backgroundImage: Utils.getProfilePic(widget.currentUser.picture),
+                      backgroundImage:
+                          Utils.getProfilePic(_userUpdated.picture),
                       radius: 50,
+                    ),
+                    GestureDetector(
+                      onTap: ()=>_changePicture(),
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          top: 20,
+                          bottom: 20,
+                        ),
+                        child: Text(
+                          AppStrings.changePhoto,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                     ),
                     Padding(
                       padding: EdgeInsets.only(
@@ -61,14 +78,17 @@ class _EditProfileState extends State<EditProfile> {
                             style: TextStyle(color: Colors.grey),
                           ),
                           GestureDetector(
-                            onTap: () => _onInputTap(context, 0,
-                                AppStrings.name, widget.currentUser.name),
+                            onTap: () => _onInputTap(
+                                context, 0, AppStrings.name, _userUpdated.name),
                             child: TextField(
                               controller: _nameController,
                               enabled: false,
                             ),
                           ),
-                          Container(height: 20,),
+                          Container(
+                            height: 20,
+                          ),
+
                           /// PSEUDO ///
                           Text(
                             AppStrings.username,
@@ -76,13 +96,16 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                           GestureDetector(
                             onTap: () => _onInputTap(context, 1,
-                                AppStrings.username, widget.currentUser.username),
+                                AppStrings.username, _userUpdated.username),
                             child: TextField(
                               controller: _usernameController,
                               enabled: false,
                             ),
-                          ), 
-                          Container(height: 20,),
+                          ),
+                          Container(
+                            height: 20,
+                          ),
+
                           /// BIO ///
                           Text(
                             AppStrings.bio,
@@ -90,11 +113,10 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                           GestureDetector(
                             onTap: () => _onInputTap(context, 2,
-                                AppStrings.username, widget.currentUser.bio),
+                                AppStrings.username, _userUpdated.bio),
                             child: TextField(
-                               keyboardType: TextInputType.multiline,
+                              keyboardType: TextInputType.multiline,
                               maxLines: null,
-                              
                               controller: _bioController,
                               enabled: false,
                             ),
@@ -110,7 +132,35 @@ class _EditProfileState extends State<EditProfile> {
         ));
   }
 
-  _onInputTap(
+  Widget _appBar() => SliverAppBar(
+        brightness: Brightness.light,
+        backgroundColor: Colors.white,
+        pinned: true,
+        elevation: 1,
+        leading: IconButton(
+          icon: Icon(
+            Icons.close,
+            size: 40,
+            color: Colors.black87,
+          ),
+          onPressed: () => {Navigator.of(context).pop()},
+        ),
+        actions: [
+          IconButton(
+            padding: EdgeInsets.only(
+              right: 30,
+            ),
+            icon: Icon(
+              Icons.check,
+              size: 40,
+              color: Colors.blue,
+            ),
+            onPressed: () => _uploadUpdatedUser(),
+          ),
+        ],
+      );
+
+  void _onInputTap(
       BuildContext context, int index, String inputName, String inputText) {
     Navigator.push(
       context,
@@ -122,11 +172,11 @@ class _EditProfileState extends State<EditProfile> {
       ),
     ).then((value) {
       _controllers[index].text = value;
-      _updateUser(index, value);
+      _updateUserObject(index, value);
     });
   }
 
-  _updateUser(int index, String newValue) {
+  void _updateUserObject(int index, String newValue) {
     switch (index) {
       case 0:
         {
@@ -146,14 +196,24 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  _initControllers() {
+  void _initControllers() {
     _nameController = TextEditingController(text: widget.currentUser.name);
-    _usernameController = TextEditingController(text: widget.currentUser.username);
+    _usernameController =
+        TextEditingController(text: widget.currentUser.username);
     _bioController = TextEditingController(text: widget.currentUser.bio);
     _controllers = [
       _nameController,
       _usernameController,
       _bioController,
     ];
+  }
+
+  void _uploadUpdatedUser() async {
+    await UserServices.updateUserProfile(_userUpdated);
+    Navigator.of(context).pop("update");
+  }
+
+  void _changePicture(){
+
   }
 }

@@ -12,18 +12,25 @@ class AppStrings {
   static String errorPermissionDeniedNeverAsk =
       "Permission denied. Please enable it from app settings";
   static String newPost = "New post";
-  static String emptyFeed = "Empty... \nAdd your first post";
+  static String emptyFeed = "You're All Caught Up";
+  static String emptyFeed2 = "You've seen all new posts from the past 2 days.";
   static String refresh = "Refresh";
   static String comments = "Comments";
   static String addComment = "Add a comment...";
   static String post = "Post";
 
   static String minute = "mn";
+  static String minuteL = "minute";
   static String hour = "h";
+  static String hourL = "hour";
   static String day = "d";
+  static String dayL = "day";
   static String week = "w";
+  static String weekL = "week";
   static String month = "m";
+  static String monthL = "month";
   static String year = "y";
+  static String yearL = "year";
 
   static String deleteComment = "Deleting...";
   static String deleteCommentDone = "Comment deleted !";
@@ -56,4 +63,36 @@ class AppStrings {
   static final String emptyGallery =
       "You don't have any photos or videos in your gallery.";
   static final String caption = "Write a caption...";
+
+  static final String viewComment1 = "View";
+  static final String viewComment2 = "all";
+  static final String viewComment3 = "comment";
+
+  static final String search = "Search";
+  static final String top = "Top";
+  static final String accounts = "Accounts";
+  static final String searchAccounts = "Search accounts";
+  static final String places = "Places";
+  static final String searchPlaces = "Search places";
+  static final String tags = "Tags";
+  static final String searchTags = "Search hashtags";
+  static final String noResultFor = "No Results Found for \"";
+
+  static const List<String> CATEGORIES = [
+    "IGTV",
+    "Travel",
+    "Architecture",
+    "Decor",
+    "Art",
+    "Food",
+    "Style",
+    "TV & Movies",
+    "DIY",
+    "Music",
+    "Sports",
+    "Beauty",
+  ];
+
+  static final String changePhoto = "Change Profile Photo";
+
 }

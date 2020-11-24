@@ -8,7 +8,7 @@ class Publication {
   String legend;
   List<String> content;
   List<String> likes = [];
-  List<String> commentsId = [];
+  int commentCount = 0;
   User user;
 
   Publication(
@@ -18,7 +18,7 @@ class Publication {
       this.legend,
       this.content,
       this.likes,
-      this.commentsId});
+      this.commentCount});
 
   Publication.newPublication(
       {this.userId, this.date, this.content, this.legend});
@@ -30,7 +30,7 @@ class Publication {
         legend: map['legend'] as String,
         content: List.from(map['content']),
         likes: List.from(map['likes']),
-        commentsId: List.from(map['commentsId']),
+        commentCount: (map['commentCount']) as int,
       );
 
   Map<String, dynamic> toMap() => {
@@ -40,7 +40,7 @@ class Publication {
         'legend': this.legend,
         'content': this.content,
         'likes': this.likes,
-        'commentsId': this.commentsId,
+        'commentCount': this.commentCount,
       };
 }
 

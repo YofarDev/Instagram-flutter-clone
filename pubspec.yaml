@@ -40,6 +40,11 @@ dependencies:
   image_crop:
   image_picker:
   uuid:
+  timeago:
+  photo_view:
+  flutter_staggered_grid_view:
+    git:
+      url: https://github.com/BertrandBev/flutter_staggered_grid_view.git
 
 
 
