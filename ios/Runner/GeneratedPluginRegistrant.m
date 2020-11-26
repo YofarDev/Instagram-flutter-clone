@@ -64,6 +64,18 @@
 @import photo_manager;
 #endif
 
+#if __has_include(<pop_bottom_menu/PopBottomMenuPlugin.h>)
+#import <pop_bottom_menu/PopBottomMenuPlugin.h>
+#else
+@import pop_bottom_menu;
+#endif
+
+#if __has_include(<shared_preferences/FLTSharedPreferencesPlugin.h>)
+#import <shared_preferences/FLTSharedPreferencesPlugin.h>
+#else
+@import shared_preferences;
+#endif
+
 #if __has_include(<video_player/FLTVideoPlayerPlugin.h>)
 #import <video_player/FLTVideoPlayerPlugin.h>
 #else
@@ -83,6 +95,8 @@
   [FLTImagePickerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTImagePickerPlugin"]];
   [LocationPlugin registerWithRegistrar:[registry registrarForPlugin:@"LocationPlugin"]];
   [ImageScannerPlugin registerWithRegistrar:[registry registrarForPlugin:@"ImageScannerPlugin"]];
+  [PopBottomMenuPlugin registerWithRegistrar:[registry registrarForPlugin:@"PopBottomMenuPlugin"]];
+  [FLTSharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTSharedPreferencesPlugin"]];
   [FLTVideoPlayerPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTVideoPlayerPlugin"]];
 }
 

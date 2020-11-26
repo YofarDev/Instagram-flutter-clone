@@ -1,15 +1,12 @@
 import 'dart:io';
-import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/authentification_services.dart';
-import 'package:instagram_clone/services/media_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/ui/common_elements/profile_picture_picker/profile_picture_picker_page.dart';
 import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -21,13 +18,22 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  bool _emptyEmail = false;
-  bool _emptyUsername = false;
-  bool _incorrectPassword = false;
-  bool _obscureText = true;
+  bool _emptyEmail;
+  bool _emptyUsername;
+  bool _incorrectPassword;
+  bool _obscureText;
 
-  File _image;
-  final picker = ImagePicker();
+  String _image;
+
+  @override
+  void initState() {
+    super.initState();
+    _emptyEmail = false;
+    _emptyUsername = false;
+    _incorrectPassword = false;
+    _obscureText = true;
+    _image = "";
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -76,12 +82,12 @@ class _RegisterPageState extends State<RegisterPage> {
             icon: Icon(
               Icons.remove_circle_outline,
               size: 30,
-              color: (_image != null) ? Colors.black : Colors.grey,
+              color: (_image.isNotEmpty) ? Colors.black : Colors.grey,
             ),
-            onPressed: (_image != null)
+            onPressed: (_image.isNotEmpty)
                 ? () {
                     setState(() {
-                      _image = null;
+                      _image = "";
                     });
                   }
                 : null,
@@ -91,18 +97,20 @@ class _RegisterPageState extends State<RegisterPage> {
             child: SizedBox(
               height: 200,
               width: 200,
-              child: (_image != null)
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: Image.file(
-                        _image,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                  : Image.asset(
-                      "assets/images/default-profile.png",
-                      fit: BoxFit.contain,
-                    ),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: (_image.isNotEmpty)
+                    ? FileImage(File(_image))
+                    : AssetImage("assets/images/default-profile.png"),
+              ),
+              // child: ClipRRect(
+              //   borderRadius: BorderRadius.circular(20),
+              //   child: (_image.isNotEmpty)
+              //       ? Image.file(File(_image))
+              //       : Image.asset(
+              //           "assets/images/default-profile.png",
+              //         ),
+              // ),
             ),
           ),
           IconButton(
@@ -111,7 +119,7 @@ class _RegisterPageState extends State<RegisterPage> {
               size: 30,
               color: Colors.black,
             ),
-            onPressed: getImage,
+            onPressed: _getImage,
           ),
         ],
       );
@@ -221,17 +229,21 @@ class _RegisterPageState extends State<RegisterPage> {
             username: _usernameController.text.trim(),
             key: scaffoldKey,
           );
-      
-     Navigator.of(context).pop(_image);
+
+      Navigator.of(context).pop(_image);
     }
   }
 
+  void _getImage() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+      builder: (context) => ProfilePicturePickerPage(),
+    ))
+        .then((value) {
+          if (value != null) setState(() {
+            _image = value;
+          });
 
-  Future getImage() async {
-    final pickedFile = await picker.getImage(source: ImageSource.gallery);
-
-    setState(() {
-      if (pickedFile != null) _image = File(pickedFile.path);
     });
   }
 }

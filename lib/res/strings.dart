@@ -4,9 +4,9 @@ class AppStrings {
   static String following = "Following";
   static String loading = "...loading";
   static String editProfile = "Edit Profile";
-  static String name = "Name";
-  static String username = "Username";
-  static String bio = "Bio";
+  static const String name = "Name";
+  static const String username = "Username";
+  static const String bio = "Bio";
   static String errorPermissionDenied =
       "We need the permission to access your location";
   static String errorPermissionDeniedNeverAsk =
@@ -94,5 +94,16 @@ class AppStrings {
   ];
 
   static final String changePhoto = "Change Profile Photo";
+  static final String enterValue = "The field is empty";
+  static final String usernameExists = "This username already exists.";
 
+  static final String follow = "Follow";
+  static final String message = "Message";
+
+  static final String notifications = "Notifications";
+  static final String mute = "Mute";
+  static final String unfollow = "Unfollow";
+  static final String recent = "Recent";
+
+  static final String settings = "Settings";
 }

@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:instagram_clone/models/user.dart';
 
 class UserServices {
-  static String currentUser = fb.FirebaseAuth.instance.currentUser.uid;
+  static String currentUserId = fb.FirebaseAuth.instance.currentUser.uid;
   static CollectionReference users =
       FirebaseFirestore.instance.collection('users');
 
@@ -14,19 +14,32 @@ class UserServices {
 
   static Future<void> addFollowing(String idFollowing) {
     // Update the following list of the current user
-    users.doc(currentUser).update({
+    users.doc(currentUserId).update({
       'following': FieldValue.arrayUnion([idFollowing])
     }).then((_) => print("New following added in db"));
 
     // Update the followers list of the new following
     return users.doc(idFollowing).update({
-      'followers': FieldValue.arrayUnion([currentUser])
+      'followers': FieldValue.arrayUnion([currentUserId])
     }).then((_) => print("New followers added in db"));
   }
 
+  static Future<void> removeFollowing(String idFollowing) {
+    // Update the following list of the current user
+    users.doc(currentUserId).update({
+      'following': FieldValue.arrayRemove([idFollowing])
+    }).then((_) => print("New following added in db"));
+
+    // Update the followers list of the new following
+    return users.doc(idFollowing).update({
+      'followers': FieldValue.arrayRemove([currentUserId])
+    }).then((_) => print("New followers added in db"));
+  }
+
+
   static Future<User> getCurrentUser() async {
     User user;
-    await users.doc(currentUser).get().then((value) {
+    await users.doc(currentUserId).get().then((value) {
       user = User.fromMap(value.data());
     });
     return user;
@@ -52,9 +65,9 @@ class UserServices {
   }
 
   static updatePicture(String url) async =>
-      users.doc(currentUser).update({'picture': url});
+      users.doc(currentUserId).update({'picture': url});
 
-  static updateUserProfile(User user) async => users.doc(currentUser).update({
+  static updateUserProfile(User user) async => users.doc(currentUserId).update({
         'name': user.name,
         'username': user.username,
         'bio': user.bio,

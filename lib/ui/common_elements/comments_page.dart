@@ -8,7 +8,10 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
 import 'package:instagram_clone/utils/utils.dart';
+
+import '../pages_holder.dart';
 
 class CommentsPage extends StatefulWidget {
   final Publication publication;
@@ -118,53 +121,60 @@ class _CommentsPageState extends State<CommentsPage> {
       );
 
   /// PUBLICATION USER FIELD
-  Widget _getPublicationResume(BuildContext context) => Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: EdgeInsets.all(12),
-            child: CircleAvatar(
-              backgroundImage: Utils.getProfilePic(_publication.user.picture),
+  Widget _getPublicationResume(BuildContext context) => GestureDetector(
+        onTap: () => Utils.navToUserDetails(context, _publication.user),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.max,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(12),
+              child: CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage: Utils.getProfilePic(_publication.user.picture),
+              ),
             ),
-          ),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: EdgeInsets.only(top: 14, right: 20, left: 4),
-                  child: _getRichTextForComment(
-                    _publication.user.username,
-                    _publication.legend,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      Utils.getHowLongAgo(_publication.date),
-                      style: TextStyle(color: Colors.grey),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: EdgeInsets.only(
+                      top: 14,
+                      right: 20,
                     ),
-                    (_publication.likes.length > 0)
-                        ? Padding(
-                            padding: EdgeInsets.only(left: 20),
-                            child: Text(
-                              _getLikesStr(_publication.likes.length),
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontWeight: FontWeight.bold,
+                    child: _getRichTextForComment(
+                      _publication.user.username,
+                      _publication.legend,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        Utils.getHowLongAgo(_publication.date),
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      (_publication.likes.length > 0)
+                          ? Padding(
+                              padding: EdgeInsets.only(left: 20),
+                              child: Text(
+                                _getLikesStr(_publication.likes.length),
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                          )
-                        : Container(),
-                  ],
-                ),
-              ],
+                            )
+                          : Container(),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
 
   /// COMMENTS LIST
@@ -185,93 +195,112 @@ class _CommentsPageState extends State<CommentsPage> {
         }
       });
 
-  Widget _buildComment(Comment comment, int index) => GestureDetector(
-        onLongPress: () {
-          if (comment.writtenById == UserServices.currentUser && !_deleteMode) {
-            setState(() {
-              _deleteMode = true;
-              _commentSelected = index;
-              _commentToDelete = comment;
-            });
-          }
-        },
-        child: Container(
-          color: (_commentSelected == index) ? AppColors.blue200 : Colors.white,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            mainAxisSize: MainAxisSize.max,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: EdgeInsets.all(12),
-                child: CircleAvatar(
-                  backgroundImage:
-                      Utils.getProfilePic(comment.writtenByPicture),
+  Widget _buildComment(Comment comment, int index) {
+    Future<User> user = UserServices.getUser(comment.writtenById);
+    return GestureDetector(
+      onLongPress: () {
+        if (comment.writtenById == UserServices.currentUserId && !_deleteMode) {
+          setState(() {
+            _deleteMode = true;
+            _commentSelected = index;
+            _commentToDelete = comment;
+          });
+        }
+      },
+      child: FutureBuilder(
+        future: user,
+        builder: (context, snapshot) {
+          return Container(
+            color:
+                (_commentSelected == index) ? AppColors.blue200 : Colors.white,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisSize: MainAxisSize.max,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(12),
+                  child: (snapshot.hasData)
+                      ? GestureDetector(
+                          onTap: () =>
+                              Utils.navToUserDetails(context, snapshot.data),
+                          child: CircleAvatar(
+                              backgroundColor: Colors.white,
+                              backgroundImage:
+                                  Utils.getProfilePic(snapshot.data.picture)),
+                        )
+                      : LoadingWidget(),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.only(top: 14, right: 20, left: 4),
-                      child: _getRichTextForComment(
-                        comment.writtenByUsername,
-                        comment.body,
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(
-                        top: 4,
-                        left: 4,
-                        bottom: 12,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            Utils.getHowLongAgo(comment.date),
-                            style: TextStyle(color: Colors.grey),
+                Expanded(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () =>
+                            Utils.navToUserDetails(context, snapshot.data),
+                        child: Container(
+                          padding: EdgeInsets.only(top: 14, right: 20, left: 4),
+                          child: _getRichTextForComment(
+                            (snapshot.hasData) ? snapshot.data.username : "",
+                            comment.body,
                           ),
-                          (comment.likes.length > 0)
-                              ? Padding(
-                                  padding: EdgeInsets.only(left: 20),
-                                  child: Text(
-                                    _getLikesStr(comment.likes.length),
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          top: 4,
+                          left: 4,
+                          bottom: 12,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              Utils.getHowLongAgo(comment.date),
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                            (comment.likes.length > 0)
+                                ? Padding(
+                                    padding: EdgeInsets.only(left: 20),
+                                    child: Text(
+                                      _getLikesStr(comment.likes.length),
+                                      style: TextStyle(
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                )
-                              : Container(),
-                        ],
+                                  )
+                                : Container(),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: IconButton(
-                    icon: (_isCommentLiked(comment))
-                        ? Icon(
-                            Icons.favorite,
-                            size: 15,
-                            color: Colors.red,
-                          )
-                        : Icon(
-                            Icons.favorite_border_outlined,
-                            size: 15,
-                          ),
-                    onPressed: () {
-                      _likeComment(comment);
-                    }),
-              ),
-            ],
-          ),
-        ),
-      );
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: IconButton(
+                      icon: (_isCommentLiked(comment))
+                          ? Icon(
+                              Icons.favorite,
+                              size: 15,
+                              color: Colors.red,
+                            )
+                          : Icon(
+                              Icons.favorite_border_outlined,
+                              size: 15,
+                            ),
+                      onPressed: () {
+                        _likeComment(comment);
+                      }),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   /// COMMENT TEXT FIELD
   Widget _getTextField() {
@@ -282,6 +311,7 @@ class _CommentsPageState extends State<CommentsPage> {
         Padding(
           padding: const EdgeInsets.all(12.0),
           child: CircleAvatar(
+            backgroundColor: Colors.white,
             backgroundImage: Utils.getProfilePic(
               widget.currentUser.picture,
             ),
@@ -364,8 +394,6 @@ class _CommentsPageState extends State<CommentsPage> {
       id: "",
       likes: [],
       writtenById: widget.currentUser.id,
-      writtenByPicture: widget.currentUser.picture,
-      writtenByUsername: widget.currentUser.username,
     );
 
     setState(() {
@@ -391,14 +419,14 @@ class _CommentsPageState extends State<CommentsPage> {
         _publication.user.id, _publication.id, comment.id, !liked);
     setState(() {
       if (!liked)
-        comment.likes.add(UserServices.currentUser);
+        comment.likes.add(UserServices.currentUserId);
       else
-        comment.likes.remove(UserServices.currentUser);
+        comment.likes.remove(UserServices.currentUserId);
     });
   }
 
   bool _isCommentLiked(Comment comment) =>
-      comment.likes.contains(UserServices.currentUser);
+      comment.likes.contains(UserServices.currentUserId);
 
   String _getLikesStr(int likes) {
     if (likes == 1)

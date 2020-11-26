@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/res/colors.dart';
 
-class BottomNavBar extends StatelessWidget {
+class MyBottomAppBar extends StatelessWidget {
   final int currentPage;
   final Function(int) onPageChange;
   final Function(int, int) onDoubleTap;
 
-  BottomNavBar({
+  MyBottomAppBar({
     @required this.currentPage,
     @required this.onPageChange,
     @required this.onDoubleTap,
@@ -14,15 +15,23 @@ class BottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      notchMargin: 6.0,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: tabsList(),
+      elevation: 0,
+      child: Stack(
+        children: [
+          Container(
+            height: 1,
+            color: AppColors.grey1010
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: _tabs(),
+          ),
+        ],
       ),
     );
   }
 
-  List<Widget> tabsList() {
+  List<Widget> _tabs() {
     return [
       GestureDetector(
         onDoubleTap: () => onDoubleTap(0, 0),

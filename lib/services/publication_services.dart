@@ -8,7 +8,7 @@ class PublicationServices {
 
   static Future<void> addPublication(Publication publication) {
     CollectionReference publications =
-        users.doc(UserServices.currentUser).collection('publications');
+        users.doc(UserServices.currentUserId).collection('publications');
 
     return publications
         .add(publication.toMap())
@@ -70,16 +70,16 @@ class PublicationServices {
 
     if (liked) {
       await publications.doc(publicationId).update({
-        'likes': FieldValue.arrayUnion([UserServices.currentUser])
+        'likes': FieldValue.arrayUnion([UserServices.currentUserId])
       });
-      await users.doc(UserServices.currentUser).update({
+      await users.doc(UserServices.currentUserId).update({
         'liked': FieldValue.arrayUnion([publicationId])
       });
     } else {
       await publications.doc(publicationId).update({
-        'likes': FieldValue.arrayRemove([UserServices.currentUser])
+        'likes': FieldValue.arrayRemove([UserServices.currentUserId])
       });
-      await users.doc(UserServices.currentUser).update({
+      await users.doc(UserServices.currentUserId).update({
         'liked': FieldValue.arrayRemove([publicationId])
       });
     }

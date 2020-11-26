@@ -5,7 +5,8 @@ import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/pages/tab2_search/debouncer.dart';
-import 'package:instagram_clone/ui/pages_holder.dart';
+import 'package:instagram_clone/utils/utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SearchOpenPage extends StatefulWidget {
   @override
@@ -14,11 +15,12 @@ class SearchOpenPage extends StatefulWidget {
 
 class _SearchOpenPageState extends State<SearchOpenPage>
     with SingleTickerProviderStateMixin {
+  static const String SHARED_KEY = "recent";
   PageController _pageController;
+  TabController _tabController;
   TextEditingController _textEditingController;
   final _debouncer = Debouncer();
   int _tabSelected;
-  TabController _tabController;
   List<User> _users;
   List<User> _searchOutput;
   bool _isSearching;
@@ -34,13 +36,6 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     _users = [];
     _searchOutput = [];
     _isSearching = false;
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _tabController.dispose();
-    _textEditingController.dispose();
   }
 
   @override
@@ -65,8 +60,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     );
   }
 
-  Widget _appBar() =>
-      AppBar(
+  Widget _appBar() => AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
@@ -79,8 +73,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         title: _searchField(),
       );
 
-  Widget _searchField() =>
-      ClipRRect(
+  Widget _searchField() => ClipRRect(
         borderRadius: BorderRadius.circular(10),
         child: TextField(
           controller: _textEditingController,
@@ -94,10 +87,9 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         ),
       );
 
-  Widget _tabBar() =>
-      TabBar(
+  Widget _tabBar() => TabBar(
         onTap: (index) {
-          _pageController.jumpToPage(index);
+          if (_pageController.hasClients) _pageController.jumpToPage(index);
           setState(() {
             _tabSelected = index;
           });
@@ -114,36 +106,29 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         ],
       );
 
-  List<Widget> _tabView() =>
-      [
+  List<Widget> _tabView() => [
         _searchOutputWidget(),
         _searchOutputWidget(),
-        Expanded(
-          child: Container(
-            color: Colors.orange,
-          ),
+        Container(
+          color: Colors.orange,
         ),
-        Expanded(
-          child: Container(
-            color: Colors.green,
-          ),
+        Container(
+          color: Colors.green,
         )
       ];
 
-  Widget _searchOutputWidget() =>
-      Expanded(
-        child: (_searchOutput.isEmpty && _isSearching)
-            ? _noResult()
-            : ListView.builder(
+  Widget _searchOutputWidget() => (_searchOutput.isEmpty)
+      ? (_isSearching)
+          ? _noResult()
+          : _recent()
+      : ListView.builder(
           itemCount: _searchOutput.length,
           itemBuilder: (context, index) {
             return _itemUser(_searchOutput[index]);
           },
-        ),
-      );
+        );
 
-  Widget _noResult() =>
-      Padding(
+  Widget _noResult() => Padding(
         padding: const EdgeInsets.all(20),
         child: Text(
           "${AppStrings.noResultFor}${_textEditingController.text}\"",
@@ -154,22 +139,73 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         ),
       );
 
-  Widget _itemUser(User user) =>
-      GestureDetector(
+  Widget _recent() => FutureBuilder(
+        future: _getRecentList(),
+        builder: (context, snapshot) {
+          Widget widget;
+          if (snapshot.hasData)
+            widget = Expanded(
+              child: ListView.builder(
+                itemCount: snapshot.data.length,
+                itemBuilder: (context, index) {
+                  return _itemUser(snapshot.data[index]);
+                },
+              ),
+            );
+          else
+            widget = LoadingWidget();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text(AppStrings.recent,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 18
+                    )),
+              ),
+              widget,
+            ],
+          );
+        },
+      );
+
+  Widget _itemUser(User user) => GestureDetector(
         onTap: () => _onUserClick(user),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CircleAvatar(
-                backgroundImage: NetworkImage(user.picture),
+              Wrap(
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.white,
+                    backgroundImage: Utils.getProfilePic(user.picture),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(left: 20, top: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.username,
+                        ),
+                        Text(_getTextInfo(user),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey))
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Text(
-                  user.username,
-                ),
-              ),
+              (!_isSearching)
+                  ? Icon(
+                      Icons.close,
+                      size: 12,
+                    )
+                  : Container(),
             ],
           ),
         ),
@@ -194,9 +230,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     }
   }
 
-  void _getAllUsers() async =>
-    _users = await UserServices.getUsers();
-
+  void _getAllUsers() async => _users = await UserServices.getUsers();
 
   void _onSearchListener() {
     setState(() {
@@ -208,15 +242,38 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         setState(() {
           _searchOutput = _users
               .where((User user) =>
-          user.name.contains(input) || user.username.contains(input))
+                  user.name.contains(input) || user.username.contains(input))
               .toList();
         });
     });
   }
 
-  void _onUserClick(User user) {
-    if (user.id == UserServices.currentUser)
-      Navigator.of(context)
-          .push(MaterialPageRoute(builder: (context) => PagesHolder(4)));
+  String _getTextInfo(User user) {
+    String str = user.name;
+    if (_isFollowedByCurrentUser(user)) str += " - ${AppStrings.following}";
+    return str;
+  }
+
+  bool _isFollowedByCurrentUser(User user) =>
+      user.followers.contains(UserServices.currentUserId);
+
+  void _onUserClick(User user) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var list = prefs.getStringList(SHARED_KEY);
+    list.add(user.id);
+    await prefs.setStringList(SHARED_KEY, list);
+    prefs = await SharedPreferences.getInstance();
+    print(prefs.getStringList(SHARED_KEY).length);
+    //Utils.navToUserDetails(context, user);
+
+  }
+
+  Future<List<User>> _getRecentList() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> recent = (prefs.getStringList(SHARED_KEY) ?? []);
+    recent.reversed.take(10);
+    List<User> users = [];
+    for (String id in recent) users.add(await UserServices.getUser(id));
+    return users;
   }
 }

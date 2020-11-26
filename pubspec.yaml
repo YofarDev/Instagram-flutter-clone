@@ -45,7 +45,9 @@ dependencies:
   flutter_staggered_grid_view:
     git:
       url: https://github.com/BertrandBev/flutter_staggered_grid_view.git
-
+  scrollable_positioned_list:
+  pop_bottom_menu:
+  shared_preferences:
 
 
 

@@ -36,100 +36,103 @@ class _HomePageState extends State<HomePage>
   Widget build(BuildContext context) {
     super.build(context);
 
-    return NestedScrollView(
-      headerSliverBuilder: (context, innerBoxScrolled) => [
-        HomeAppBar(
-          onIconTap: (int index) => _onIconTap(index),
-        ),
-      ],
-      body: FutureBuilder(
-        future: _feedWidgets,
-        builder: (context, snapshot) {
-          Widget feedList;
-          if (!snapshot.hasData) {
-            feedList = SliverToBoxAdapter(
-              child: Container(
-                alignment: FractionalOffset.center,
-                padding: const EdgeInsets.only(top: 10.0),
-                child: CircularProgressIndicator(),
-              ),
-            );
-          } else {
-            if (snapshot.data.length == 0) {
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxScrolled) => [
+          HomeAppBar(
+            onIconTap: (int index) => _onIconTap(index),
+          ),
+        ],
+        body: FutureBuilder(
+          future: _feedWidgets,
+          builder: (context, snapshot) {
+            Widget feedList;
+            if (!snapshot.hasData) {
               feedList = SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 80),
-                  child: Column(
-                    children: [
-                      Container(
-                        height: 1,
-                        color: AppColors.grey1010,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(top: 20),
-                        child: Icon(
-                          Icons.check_circle_outline,
-                          size: 60,
-                          color: Colors.green,
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.only(top: 20),
-                        child: Text(
-                          AppStrings.emptyFeed,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 20,
-                          bottom: 60,
-                        ),
-                        child: Text(
-                          AppStrings.emptyFeed2,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        height: 1,
-                        color: AppColors.grey1010,
-                      ),
-                    ],
-                  ),
+                child: Container(
+                  alignment: FractionalOffset.center,
+                  padding: const EdgeInsets.only(top: 10.0),
+                  child: CircularProgressIndicator(),
                 ),
               );
             } else {
-              feedList = SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                    return PostItem(
-                      publication: snapshot.data[index],
-                      currentUser: _currentUser,
-                    );
-                  },
-                  childCount: snapshot.data.length,
-                ),
-              );
+              if (snapshot.data.length == 0) {
+                feedList = SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 80),
+                    child: Column(
+                      children: [
+                        Container(
+                          height: 1,
+                          color: AppColors.grey1010,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Icon(
+                            Icons.check_circle_outline,
+                            size: 60,
+                            color: Colors.green,
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 20),
+                          child: Text(
+                            AppStrings.emptyFeed,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: 20,
+                            bottom: 60,
+                          ),
+                          child: Text(
+                            AppStrings.emptyFeed2,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: 1,
+                          color: AppColors.grey1010,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                feedList = SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return PublicationItem(
+                        publication: snapshot.data[index],
+                        currentUser: _currentUser,
+                        isFeed: true,
+                      );
+                    },
+                    childCount: snapshot.data.length,
+                  ),
+                );
+              }
             }
-          }
-          return RefreshIndicator(
-            key: _refreshKey,
-            onRefresh: () => _refreshFeed(),
-            child: CustomScrollView(
-              controller: widget.scroll,
-              slivers: <Widget>[
-                feedList,
-              ],
-            ),
-          );
-        },
+            return RefreshIndicator(
+              key: _refreshKey,
+              onRefresh: () => _refreshFeed(),
+              child: CustomScrollView(
+                controller: widget.scroll,
+                slivers: <Widget>[
+                  feedList,
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

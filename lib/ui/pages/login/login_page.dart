@@ -197,6 +197,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _uploadPicture(File file) => (file != null)
-      ? MediaServices.uploadProfilePicture(file, UserServices.currentUser)
+      ? MediaServices.uploadProfilePicture(file, UserServices.currentUserId)
       : print("no picture");
 }

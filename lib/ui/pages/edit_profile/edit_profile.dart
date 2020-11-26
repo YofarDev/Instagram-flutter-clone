@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/media_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
-import 'package:instagram_clone/ui/pages/edit_profile/edit_app_bar.dart';
+import 'package:instagram_clone/ui/common_elements/profile_picture_picker/profile_picture_picker_page.dart';
 import 'package:instagram_clone/ui/pages/edit_profile/screen_input.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
@@ -21,12 +24,14 @@ class _EditProfileState extends State<EditProfile> {
   TextEditingController _bioController;
   List<TextEditingController> _controllers = [];
   User _userUpdated;
+  String _newPicture;
 
   @override
   void initState() {
     super.initState();
     _userUpdated = widget.currentUser;
     _initControllers();
+    _newPicture = "";
   }
 
   @override
@@ -42,12 +47,13 @@ class _EditProfileState extends State<EditProfile> {
                 child: Column(
                   children: [
                     CircleAvatar(
-                      backgroundImage:
-                          Utils.getProfilePic(_userUpdated.picture),
+                      backgroundImage: (_newPicture.isEmpty)
+                          ? Utils.getProfilePic(_userUpdated.picture)
+                          : FileImage(File(_newPicture)),
                       radius: 50,
                     ),
                     GestureDetector(
-                      onTap: ()=>_changePicture(),
+                      onTap: () => _getUpdatedPicture(),
                       child: Padding(
                         padding: EdgeInsets.only(
                           top: 20,
@@ -155,7 +161,7 @@ class _EditProfileState extends State<EditProfile> {
               size: 40,
               color: Colors.blue,
             ),
-            onPressed: () => _uploadUpdatedUser(),
+            onPressed: () => _onConfirmTap(),
           ),
         ],
       );
@@ -179,19 +185,13 @@ class _EditProfileState extends State<EditProfile> {
   void _updateUserObject(int index, String newValue) {
     switch (index) {
       case 0:
-        {
-          _userUpdated.name = newValue;
-        }
+        _userUpdated.name = newValue;
         break;
       case 1:
-        {
-          _userUpdated.username = newValue;
-        }
+        _userUpdated.username = newValue;
         break;
       case 2:
-        {
-          _userUpdated.bio = newValue;
-        }
+        _userUpdated.bio = newValue;
         break;
     }
   }
@@ -208,12 +208,28 @@ class _EditProfileState extends State<EditProfile> {
     ];
   }
 
-  void _uploadUpdatedUser() async {
-    await UserServices.updateUserProfile(_userUpdated);
-    Navigator.of(context).pop("update");
+  Future<void> _uploadUpdatedUser() async =>
+      await UserServices.updateUserProfile(_userUpdated);
+
+  void _getUpdatedPicture() {
+    Navigator.of(context)
+        .push(MaterialPageRoute(
+      builder: (context) => ProfilePicturePickerPage(),
+    ))
+        .then((value) {
+      if (value != null)
+        setState(() {
+          _newPicture = value;
+        });
+    });
   }
 
-  void _changePicture(){
+  Future<void> _uploadNewPicture() async => MediaServices.uploadProfilePicture(
+      File(_newPicture), UserServices.currentUserId);
 
+  void _onConfirmTap() async {
+    await _uploadUpdatedUser();
+    if (_newPicture.isNotEmpty) await _uploadNewPicture();
+    Navigator.of(context).pop("update");
   }
 }

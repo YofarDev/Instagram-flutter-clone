@@ -3,8 +3,6 @@ class Comment {
   String date;
   String body;
   String writtenById;
-  String writtenByUsername;
-  String writtenByPicture;
   List<String> likes;
 
   Comment(
@@ -12,8 +10,6 @@ class Comment {
       this.date,
       this.body,
       this.writtenById,
-      this.writtenByUsername,
-      this.writtenByPicture,
       this.likes});
 
   factory Comment.fromMap(Map<String, dynamic> map) {
@@ -22,8 +18,6 @@ class Comment {
       date: map['date'] as String,
       body: map['comment'] as String,
       writtenById: map['writtenById'] as String,
-      writtenByUsername: map['writtenByUsername'] as String,
-      writtenByPicture: map['writtenByPicture'] as String,
       likes: List.from(map['likes']),
     );
   }
@@ -33,8 +27,6 @@ class Comment {
         'date': this.date,
         'comment': this.body,
         'writtenById': this.writtenById,
-        'writtenByUsername': this.writtenByUsername,
-        'writtenByPicture': this.writtenByPicture,
         'likes': this.likes,
       };
 }

@@ -1,25 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
-import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/ui/common_elements/comments_page.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/content_slider.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
+import 'package:instagram_clone/ui/pages/tab1_home/content_slider.dart';
+import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
 
-class PostItem extends StatefulWidget {
+class PublicationItem extends StatefulWidget {
   final Publication publication;
   final User currentUser;
+  final bool isFeed;
 
-  PostItem({this.publication, this.currentUser});
+  PublicationItem({
+    @required this.publication,
+    @required this.currentUser,
+    @required this.isFeed,
+  });
 
   @override
-  _PostItemState createState() => _PostItemState();
+  _PublicationItemState createState() => _PublicationItemState();
 }
 
-class _PostItemState extends State<PostItem> {
+class _PublicationItemState extends State<PublicationItem> {
   Publication _publication;
   User _currentUser;
   bool _liked;
@@ -52,27 +59,32 @@ class _PostItemState extends State<PostItem> {
   }
 
   Widget _getTop() {
-    return Container(
-      color: Colors.white,
-      height: 60,
-      padding: EdgeInsets.only(left: 12, right: 12),
-      child: Row(
-        children: [
-          CircleAvatar(
-              backgroundImage: Utils.getProfilePic(_publication.user.picture)),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              _publication.user.username,
-              style: TextStyle(fontWeight: FontWeight.bold),
+    return GestureDetector(
+      onTap: () => Utils.navToUserDetails(context, _publication.user),
+      child: Container(
+        color: Colors.white,
+        height: 60,
+        padding: EdgeInsets.only(left: 12, right: 12),
+        child: Row(
+          children: [
+            CircleAvatar(
+                backgroundColor: Colors.white,
+                backgroundImage:
+                    Utils.getProfilePic(_publication.user.picture)),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                _publication.user.username,
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
-          ),
-          Spacer(),
-          Icon(
-            Icons.more_vert,
-            color: Colors.black,
-          )
-        ],
+            Spacer(),
+            Icon(
+              Icons.more_vert,
+              color: Colors.black,
+            )
+          ],
+        ),
       ),
     );
   }
@@ -199,39 +211,42 @@ class _PostItemState extends State<PostItem> {
                   ),
                 )
               : Container(),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: EdgeInsets.only(top: 4),
-                child: CircleAvatar(
-                  backgroundImage: Utils.getProfilePic(
-                    widget.currentUser.picture,
-                  ),
-                  backgroundColor: Colors.black,
-                ),
-              ),
-              Expanded(
-                child: TextField(
-                  maxLines: null,
-                  autocorrect: false,
-                  onChanged: (value) => setState(() {
-                    // needed to update Post button
-                  }),
-                  onSubmitted: (value) {},
-                  textCapitalization: TextCapitalization.sentences,
-                  decoration: InputDecoration(
-                      border: InputBorder.none,
-                      hintText: AppStrings.addComment,
-                      contentPadding: EdgeInsets.only(left: 10)),
-                ),
-              ),
-            ],
-          ),
+          (widget.isFeed)
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: CircleAvatar(
+                        backgroundImage: Utils.getProfilePic(
+                          widget.currentUser.picture,
+                        ),
+                        backgroundColor: Colors.white,
+                      ),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        maxLines: null,
+                        autocorrect: false,
+                        onChanged: (value) => setState(() {
+                          // needed to update Post button
+                        }),
+                        onSubmitted: (value) {},
+                        textCapitalization: TextCapitalization.sentences,
+                        decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: AppStrings.addComment,
+                            contentPadding: EdgeInsets.only(left: 10)),
+                      ),
+                    ),
+                  ],
+                )
+              : Container(),
           Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
-              Utils.getHowLongAgoLonger(_publication.date),
+              Utils.uppercaseFirstLetter(
+                  Utils.getHowLongAgoLonger(_publication.date)),
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 12,

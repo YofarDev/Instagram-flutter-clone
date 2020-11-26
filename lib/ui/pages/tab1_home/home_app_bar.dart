@@ -8,6 +8,7 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return SliverAppBar(
+      automaticallyImplyLeading: false,
       brightness: Brightness.light,
       pinned: true,
       backgroundColor: Colors.white,

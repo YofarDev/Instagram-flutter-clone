@@ -1,100 +1,109 @@
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/publication_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/ui/common_elements/bottom_app_bar.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
-import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
+import 'package:instagram_clone/ui/common_elements/no_animation_material_page_route.dart';
 import 'package:instagram_clone/ui/common_elements/user_list_publications/user_publications_page.dart';
+import 'package:instagram_clone/ui/pages/edit_profile/edit_profile.dart';
+import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/animated_drawer.dart';
+import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
-import 'package:pop_bottom_menu/pop_bottom_menu.dart';
 
-class UserPage extends StatefulWidget {
-  final User user;
+class CurrentUserPage extends StatefulWidget {
+  final Function() onDrawerIconTap;
 
-  UserPage(this.user);
 
-  _UserPageState createState() => _UserPageState();
+  CurrentUserPage(this.onDrawerIconTap);
+
+  _CurrentUserPageState createState() => _CurrentUserPageState();
 }
 
-class _UserPageState extends State<UserPage>
-    with SingleTickerProviderStateMixin {
+class _CurrentUserPageState extends State<CurrentUserPage>
+    with AutomaticKeepAliveClientMixin, SingleTickerProviderStateMixin {
   var refreshKey = GlobalKey<RefreshIndicatorState>();
   TabController _tabController;
   Future<dynamic> _publicationsWidgets;
-  User _userDetails;
+  String _title;
+  User _currentUser;
   List<Publication> _mentionsList = [];
   int _posts = 0;
-  bool _following;
-  bool _followed;
 
   @override
   void initState() {
     super.initState();
-    _userDetails = widget.user;
     _publicationsWidgets = _getPublications();
-    _getFollowingState();
+    _title = "";
     _tabController = TabController(length: 2, initialIndex: 0, vsync: this);
-    _following = false;
-    _followed = false;
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
-    List<Widget> widgets = [];
-    return SafeArea(
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: NestedScrollView(
-          headerSliverBuilder: (context, innerBoxScrolled) => [
-            _appBar(),
-          ],
-          body: FutureBuilder(
-            future: _publicationsWidgets,
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                widgets = [
-                  SliverToBoxAdapter(
-                    child: Center(
-                      child: LoadingWidget(),
-                    ),
-                  ),
-                ];
-              } else {
-                widgets = [
-                  _headerCollapse(),
-                  _tabs(),
-                  _tabView(snapshot),
-                ];
-              }
-              return RefreshIndicator(
-                key: refreshKey,
-                onRefresh: () => refreshList(),
-                child: CustomScrollView(
-                  slivers: widgets,
-                ),
-              );
-            },
-          ),
-        ),
+    super.build(context);
+    return Scaffold(
+      backgroundColor: Colors.white,
+      bottomNavigationBar: MyBottomAppBar(
+        currentPage: 4,
+        onPageChange: _onPageChanged,
       ),
+      body: NestedScrollView(
+          headerSliverBuilder: (context, innerBoxScrolled) => [
+                _appBar(),
+              ],
+          body: _future()),
     );
   }
 
   ///*** UI ***///
+
+  Widget _future() => FutureBuilder(
+        future: _publicationsWidgets,
+        builder: (context, snapshot) {
+          List<Widget> widgets = [];
+          if (!snapshot.hasData) {
+            widgets = [
+              SliverToBoxAdapter(
+                child: Center(
+                  child: LoadingWidget(),
+                ),
+              ),
+            ];
+          } else {
+            widgets = [
+              _headerCollapse(),
+              _tabs(),
+              _tabView(snapshot),
+            ];
+          }
+          return RefreshIndicator(
+            key: refreshKey,
+            onRefresh: () => refreshList(),
+            child: CustomScrollView(
+              slivers: widgets,
+            ),
+          );
+        },
+      );
+
   Widget _appBar() => SliverAppBar(
-        automaticallyImplyLeading: true,
+        automaticallyImplyLeading: false,
         brightness: Brightness.light,
         pinned: true,
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: IconThemeData(color: Colors.black),
+        forceElevated: true,
         centerTitle: false,
         title: SizedBox(
           height: 35.0,
-          child: Text(_userDetails.username,
+          child: Text(_title,
               style: TextStyle(
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
@@ -114,7 +123,7 @@ class _UserPageState extends State<UserPage>
               Icons.menu,
               color: Colors.black,
             ),
-            onPressed: null,
+            onPressed: widget.onDrawerIconTap,
           ),
         ],
       );
@@ -135,7 +144,7 @@ class _UserPageState extends State<UserPage>
               children: [
                 CircleAvatar(
                   backgroundColor: Colors.white,
-                  backgroundImage: Utils.getProfilePic(_userDetails.picture),
+                  backgroundImage: Utils.getProfilePic(_currentUser.picture),
                   radius: 50,
                 ),
                 Column(
@@ -154,7 +163,7 @@ class _UserPageState extends State<UserPage>
                 Column(
                   children: [
                     Text(
-                      _userDetails.followers.length.toString(),
+                      _currentUser.followers.length.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: fontSizeTop),
                     ),
@@ -167,7 +176,7 @@ class _UserPageState extends State<UserPage>
                 Column(
                   children: [
                     Text(
-                      _userDetails.following.length.toString(),
+                      _currentUser.following.length.toString(),
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: fontSizeTop),
                     ),
@@ -187,14 +196,30 @@ class _UserPageState extends State<UserPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Utils.uppercaseFirstLetter(_userDetails.name),
+                    Utils.uppercaseFirstLetter(_currentUser.name),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  Text(_userDetails.bio),
-                  _buttons(),
+                  Text(_currentUser.bio),
                 ],
+              ),
+            ),
+            Container(
+              padding: EdgeInsets.only(top: 20, bottom: 15),
+              width: double.infinity,
+              child: OutlineButton(
+                borderSide: BorderSide(color: Colors.grey),
+                color: Colors.white,
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) {
+                    return EditProfile(_currentUser);
+                  }),
+                ).then((value) {
+                  if (value == "update") _updateUser();
+                }),
+                child: Text(AppStrings.editProfile),
               ),
             ),
           ],
@@ -202,65 +227,6 @@ class _UserPageState extends State<UserPage>
       ),
     );
   }
-
-  Widget _buttons() => Padding(
-        padding: const EdgeInsets.only(top: 20),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            (_followed) ? _followingButton() : _followButton(),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(left: 3),
-                child: OutlineButton(
-                  child: Text(AppStrings.message),
-                  onPressed: () {},
-                ),
-              ),
-            )
-          ],
-        ),
-      );
-
-  Widget _followButton() => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(right: 3),
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: FlatButton(
-                color: Colors.blue,
-                textColor: Colors.white,
-                child: Text(
-                  AppStrings.follow,
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                onPressed: () => _onFollowTap(),
-              )),
-        ),
-      );
-
-  Widget _followingButton() => Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(right: 3),
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: OutlineButton(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppStrings.following,
-                    ),
-                    Icon(Icons.keyboard_arrow_down),
-                  ],
-                ),
-                onPressed: () => _onFollowTap(),
-              )),
-        ),
-      );
 
   Widget _tabs() => SliverPersistentHeader(
         pinned: true,
@@ -291,8 +257,12 @@ class _UserPageState extends State<UserPage>
         child: TabBarView(
           controller: _tabController,
           children: [
-            _gridPublications(snapshot.data),
-            _gridPublications(_mentionsList),
+            (snapshot.data.isEmpty)
+                ? _emptyTabPublications()
+                : _gridPublications(snapshot.data),
+            (_mentionsList.isEmpty)
+                ? _emptyTabMentions()
+                : _gridPublications(_mentionsList),
           ],
         ),
       );
@@ -350,22 +320,95 @@ class _UserPageState extends State<UserPage>
     return icon;
   }
 
+  Widget _emptyTabPublications() => Padding(
+        padding: EdgeInsets.only(left: 80, right: 80),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: Text(
+                AppStrings.profile,
+                style: (TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
+                )),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text(
+                AppStrings.emptyProfile,
+                textAlign: TextAlign.center,
+                style: (TextStyle(
+                  color: AppColors.darkGrey,
+                  fontSize: 16,
+                )),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text(
+                AppStrings.emptyProfileShare,
+                textAlign: TextAlign.center,
+                style: (TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                )),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  Widget _emptyTabMentions() => Padding(
+        padding: EdgeInsets.only(left: 80, right: 80),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 10),
+              child: Text(
+                AppStrings.mentions,
+                textAlign: TextAlign.center,
+                style: (TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 30,
+                )),
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Text(
+                AppStrings.mentionsEmpty,
+                textAlign: TextAlign.center,
+                style: (TextStyle(
+                  color: AppColors.darkGrey,
+                  fontSize: 16,
+                )),
+              ),
+            ),
+          ],
+        ),
+      );
+
   ///*** DATA ***///
-  void _getFollowingState() async {
-    User current = await UserServices.getCurrentUser();
-    setState(() {
-      _followed = _isFollowedByCurrentUser(current.following);
-    });
-  }
+  Future<dynamic> _getCurrentUser() async =>
+      await UserServices.getCurrentUser();
 
   Future<dynamic> _getPublications() async {
+    _currentUser = await _getCurrentUser();
+    setState(() {
+      _title = _currentUser.username;
+    });
     List<Mention> mentions = [];
     // Publications of current user
     List<Publication> publicationsList =
-        await PublicationServices.getPublicationsForUser(_userDetails.id);
+        await PublicationServices.getPublicationsForUser(_currentUser.id);
     _posts = publicationsList.length;
     // Publications where current user is mentioned
-    for (String mentionStr in _userDetails.mentions)
+    for (String mentionStr in _currentUser.mentions)
       mentions.add(Utils.strToMention(mentionStr));
     for (Mention mention in mentions)
       _mentionsList
@@ -388,69 +431,27 @@ class _UserPageState extends State<UserPage>
     });
   }
 
+  void _updateUser() async {
+    User user = await UserServices.getCurrentUser();
+    setState(() {
+      _currentUser = user;
+      _title = user.username;
+    });
+  }
+
   void _onPublicationTap(List<Publication> publications, int index) {
     publications.forEach((Publication p) {
-      p.user = _userDetails;
+      p.user = _currentUser;
     });
     Navigator.of(context).push(MaterialPageRoute(
       builder: (context) =>
-          UserPublicationsPage(publications, _userDetails, index),
+          UserPublicationsPage(publications, _currentUser, index),
     ));
   }
 
-  bool _isFollowedByCurrentUser(List<String> currentUserFollowing) =>
-      currentUserFollowing.contains(_userDetails.id);
-
-  bool _followCurrentUser(List<String> userFollowing) =>
-      userFollowing.contains(UserServices.currentUserId);
-
-  void _onFollowTap() {
-    if (!_followed)
-      _follow();
-    else
-      _showMenu();
-  }
-
-  void _follow() {
-    setState(() {
-      _followed = true;
-      _userDetails.following.add(UserServices.currentUserId);
-    });
-    UserServices.addFollowing(_userDetails.id);
-  }
-
-  void _unfollow() {
-    setState(() {
-      _followed = false;
-      _userDetails.following.remove(UserServices.currentUserId);
-    });
-    UserServices.removeFollowing(_userDetails.id);
-    Navigator.of(context).pop();
-  }
-
-  void _showMenu() => showModalBottomSheet(
-        context: context,
-        builder: (context) => PopBottomMenu(
-            title: TitlePopBottomMenu(label: _userDetails.username),
-            items: [
-              ItemPopBottomMenu(
-                label: AppStrings.notifications,
-                icon: Icon(
-                  Icons.navigate_next,
-                  color: Colors.grey,
-                ),
-              ),
-              ItemPopBottomMenu(
-                label: AppStrings.mute,
-                icon: Icon(
-                  Icons.navigate_next,
-                  color: Colors.grey,
-                ),
-              ),
-              ItemPopBottomMenu(
-                onPressed: () => _unfollow(),
-                label: AppStrings.unfollow,
-              ),
-            ]),
-      );
+  _onPageChanged(int page) => (page != 4) ? Navigator.of(context).push(
+        NoAnimationMaterialPageRoute(
+          builder: (context) => PagesHolder(page),
+        ),
+      ) : null;
 }

@@ -2,6 +2,10 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/user_holder.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
+import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class Utils {
@@ -49,4 +53,11 @@ class Utils {
   static getProfilePic(String url) => (url.isNotEmpty)
       ? NetworkImage(url)
       : AssetImage("assets/images/default-profile.png");
+
+  static navToUserDetails(BuildContext context, User user) =>
+      Navigator.of(context).push(MaterialPageRoute(
+        builder: (context) => (user.id != UserServices.currentUserId)
+            ? PagesHolder(4, user: user,)
+            : PagesHolder(4),
+      ));
 }

@@ -53,11 +53,11 @@ class CommentServices {
 
     if (liked)
       await comments.doc(commentId).update({
-        'likes': FieldValue.arrayUnion([UserServices.currentUser])
+        'likes': FieldValue.arrayUnion([UserServices.currentUserId])
       });
     else
       await comments.doc(commentId).update({
-        'likes': FieldValue.arrayRemove([UserServices.currentUser])
+        'likes': FieldValue.arrayRemove([UserServices.currentUserId])
       });
   }
 

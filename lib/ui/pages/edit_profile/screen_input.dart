@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
-import 'package:instagram_clone/ui/pages/edit_profile/edit_app_bar.dart';
+import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/user_services.dart';
 
 class ScreenInput extends StatefulWidget {
-  final String inputName;
+  final String title;
   final String inputText;
-  ScreenInput(this.inputName, this.inputText);
+
+  ScreenInput(this.title, this.inputText);
 
   _ScreenInputState createState() => _ScreenInputState();
 }
 
 class _ScreenInputState extends State<ScreenInput> {
-  TextEditingController controller;
-  String textChanged;
+  TextEditingController _textController;
+  String _textChanged;
+  bool _usernameExists;
+  int _maxLength;
+  bool _filter;
+
   @override
   void initState() {
     super.initState();
-    textChanged = widget.inputText;
-    controller = TextEditingController(text: textChanged);
+    _textChanged = widget.inputText;
+    _textController = TextEditingController(text: _textChanged);
+    _usernameExists = false;
+    _initValues();
   }
 
   @override
@@ -25,51 +35,143 @@ class _ScreenInputState extends State<ScreenInput> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          EditAppBar(
-            title: widget.inputName,
-            inputText: textChanged,
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: 35,
-                left: 20,
-                right: 20,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    widget.inputName,
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  TextField(
-                    keyboardType: TextInputType.multiline,
-                    maxLines: null,
-                    
-                    controller: controller,
-                    onChanged: (value) => setState(() {
-                      textChanged = value;
-                    }),
-                    cursorColor: AppColors.darkGreen,
-                    cursorWidth: 2,
-                    decoration: InputDecoration(
-                      enabledBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.grey50),
-                      ),
-                      focusedBorder: UnderlineInputBorder(
-                        borderSide: BorderSide(color: AppColors.grey50),
-                      ),
-                    ),
-                    autofocus: true,
-                  ),
-                ],
-              ),
-            ),
-          )
+          _appBar(widget.title),
+          _textField(),
         ],
       ),
     );
+  }
+
+  Widget _appBar(String title) => SliverAppBar(
+        brightness: Brightness.light,
+        backgroundColor: Colors.white,
+        pinned: true,
+        elevation: 1,
+        leading: IconButton(
+          icon: Icon(
+            Icons.close,
+            size: 40,
+            color: Colors.black87,
+          ),
+          onPressed: () => {Navigator.of(context).pop(widget.inputText)},
+        ),
+        title: SizedBox(
+          height: 35,
+          child: Text(
+            title,
+            style: TextStyle(
+                fontWeight: FontWeight.bold, fontSize: 30, color: Colors.black),
+          ),
+        ),
+        actions: [
+          IconButton(
+            padding: EdgeInsets.only(
+              right: 30,
+            ),
+            icon: Icon(
+              Icons.check,
+              size: 40,
+              color:
+                  (_textChanged.isNotEmpty) ? Colors.blue : AppColors.blue200,
+            ),
+            onPressed: () => (widget.title == AppStrings.bio)
+                ? _onConfirmTap
+                : (_textChanged.isNotEmpty)
+                    ? _onConfirmTap()
+                    : null,
+          ),
+        ],
+      );
+
+  Widget _textField() => SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.only(
+            top: 35,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                widget.title,
+                style: TextStyle(color: Colors.grey),
+              ),
+              TextField(
+                keyboardType: TextInputType.multiline,
+                autocorrect: false,
+                maxLines: null,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(_maxLength),
+                  (_filter)
+                      ? FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))
+                      : null,
+                ],
+                controller: _textController,
+                onChanged: (value) => setState(() {
+                   _textChanged = value;
+                }),
+                cursorColor: AppColors.darkGreen,
+                cursorWidth: 2,
+                decoration: InputDecoration(
+                  errorText:
+                      (_usernameExists) ? AppStrings.usernameExists : null,
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.grey50),
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: AppColors.grey50),
+                  ),
+                ),
+                autofocus: true,
+              ),
+            ],
+          ),
+        ),
+      );
+
+  void _onConfirmTap() async {
+    // Username
+    if (widget.title == AppStrings.username) {
+      _usernameExists = await _usernameAlreadyExists();
+      if (!_usernameExists && _textChanged.isNotEmpty)
+        Navigator.of(context).pop(_textChanged);
+    }
+    // Name & Bio
+    else
+      Navigator.of(context).pop(_textChanged);
+  }
+
+  Future<bool> _usernameAlreadyExists() async {
+    List<User> users = await UserServices.getUsers();
+    User current = await UserServices.getCurrentUser();
+    List<String> usernames = [];
+    for (User user in users)
+      if (user.username != current.username) usernames.add(user.username);
+    return (usernames.contains(_textChanged));
+  }
+
+  void _initValues() {
+    switch (widget.title) {
+      case (AppStrings.username):
+        {
+          _maxLength = 12;
+          _filter = true;
+        }
+        break;
+      case (AppStrings.name):
+        {
+          _maxLength = 20;
+          _filter = true;
+        }
+        break;
+      case (AppStrings.bio):
+        {
+          _maxLength = 200;
+          _filter = false;
+        }
+        break;
+    }
   }
 }

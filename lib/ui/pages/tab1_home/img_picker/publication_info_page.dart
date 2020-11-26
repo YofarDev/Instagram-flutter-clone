@@ -116,7 +116,7 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
       content.add(
         Content(
           false,
-          await MediaServices.uploadImage(media, UserServices.currentUser),
+          await MediaServices.uploadImage(media, UserServices.currentUserId),
           1,
         ),
       );
@@ -129,7 +129,7 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
       for (Content c in content) contentStr.add(Utils.itemContentToStr(c));
 
       Publication newPublication = Publication.newPublication(
-        userId: UserServices.currentUser,
+        userId: UserServices.currentUserId,
         date: DateTime.now().toString(),
         legend: _textController.text,
         content: contentStr,

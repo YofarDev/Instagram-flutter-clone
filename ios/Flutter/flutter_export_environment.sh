@@ -1,7 +1,7 @@
 #!/bin/sh
 # This is a generated file; do not edit or check into version control.
 export "FLUTTER_ROOT=/home/yofaraway/Android/flutter"
-export "FLUTTER_APPLICATION_PATH=/home/yofaraway/AndroidStudioProjects/instagram_clone"
+export "FLUTTER_APPLICATION_PATH=/home/yofaraway/Android/AndroidStudioProjects/Flutter/instagram_clone"
 export "FLUTTER_TARGET=lib/main.dart"
 export "FLUTTER_BUILD_DIR=build"
 export "SYMROOT=${SOURCE_ROOT}/../build/ios"
