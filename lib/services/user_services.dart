@@ -8,9 +8,8 @@ class UserServices {
   static CollectionReference users =
       FirebaseFirestore.instance.collection('users');
 
-  static Future<void> addUser(User user) {
-    return users.doc(user.id).set(user.toMap());
-  }
+  static Future<void> addUser(User user) =>
+      users.doc(user.id).set(user.toMap());
 
   static Future<void> addFollowing(String idFollowing) {
     // Update the following list of the current user
@@ -35,7 +34,6 @@ class UserServices {
       'followers': FieldValue.arrayRemove([currentUserId])
     }).then((_) => print("New followers added in db"));
   }
-
 
   static Future<User> getCurrentUser() async {
     User user;
@@ -72,4 +70,10 @@ class UserServices {
         'username': user.username,
         'bio': user.bio,
       });
+
+  static addConversationToUser(String userId, String conversationId) async {
+    users.doc(userId).update({
+      'conversationsId': FieldValue.arrayUnion([conversationId])
+    });
+  }
 }

@@ -147,7 +147,7 @@ class _RegisterPageState extends State<RegisterPage> {
           autocorrect: false,
           inputFormatters: [
             LengthLimitingTextInputFormatter(12),
-            FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]")),
+            FilteringTextInputFormatter.allow(RegExp("[a-zA-Z-0-9]")),
           ],
           decoration: InputDecoration(
             errorText: _emptyUsername ? AppStrings.errorUsername : null,
@@ -240,10 +240,10 @@ class _RegisterPageState extends State<RegisterPage> {
       builder: (context) => ProfilePicturePickerPage(),
     ))
         .then((value) {
-          if (value != null) setState(() {
-            _image = value;
-          });
-
+      if (value != null)
+        setState(() {
+          _image = value;
+        });
     });
   }
 }

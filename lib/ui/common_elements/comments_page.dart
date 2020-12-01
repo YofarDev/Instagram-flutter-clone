@@ -1,17 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/comment.dart';
-import 'package:instagram_clone/models/user.dart';
-import 'package:instagram_clone/services/comment_service.dart';
-import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
+import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/comment_service.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
-import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
 import 'package:instagram_clone/utils/utils.dart';
-
-import '../pages_holder.dart';
 
 class CommentsPage extends StatefulWidget {
   final Publication publication;
@@ -242,7 +239,7 @@ class _CommentsPageState extends State<CommentsPage> {
                         child: Container(
                           padding: EdgeInsets.only(top: 14, right: 20, left: 4),
                           child: _getRichTextForComment(
-                            (snapshot.hasData) ? snapshot.data.username : "",
+                            (snapshot.hasData) ? snapshot.data._username : "",
                             comment.body,
                           ),
                         ),
@@ -459,8 +456,8 @@ class _CommentsPageState extends State<CommentsPage> {
 
         // Displaying user new snackbar
         Future.delayed(Duration(seconds: 2)).then((value) {
-          _key.currentState.removeCurrentSnackBar();
-          _key.currentState.showSnackBar(
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppStrings.deleteCommentDone)),
           );
 
@@ -470,8 +467,8 @@ class _CommentsPageState extends State<CommentsPage> {
             _deleteMode = false;
           });
 
-          _key.currentState.removeCurrentSnackBar();
-          _key.currentState.showSnackBar(
+          ScaffoldMessenger.of(context).removeCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(AppStrings.errorTryAgain)),
           );
           return e;

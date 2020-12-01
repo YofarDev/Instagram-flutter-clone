@@ -5,6 +5,7 @@ import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/ui/pages/message/conversations_list.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/home_app_bar.dart';
 import 'package:instagram_clone/ui/common_elements/publication_item.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/img_picker/picker_gallery_page.dart';
@@ -197,7 +198,12 @@ class _HomePageState extends State<HomePage>
         print(1);
         break;
       case (2):
-        print(2);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => ConversationsList(_currentUser),
+          ),
+        );
+
         break;
     }
   }

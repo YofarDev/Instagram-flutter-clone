@@ -19,7 +19,8 @@ class _ScreenInputState extends State<ScreenInput> {
   String _textChanged;
   bool _usernameExists;
   int _maxLength;
-  bool _filter;
+  bool _filterName;
+  bool _filterUsername;
 
   @override
   void initState() {
@@ -27,6 +28,8 @@ class _ScreenInputState extends State<ScreenInput> {
     _textChanged = widget.inputText;
     _textController = TextEditingController(text: _textChanged);
     _usernameExists = false;
+    _filterName = false;
+    _filterUsername = false;
     _initValues();
   }
 
@@ -75,7 +78,7 @@ class _ScreenInputState extends State<ScreenInput> {
                   (_textChanged.isNotEmpty) ? Colors.blue : AppColors.blue200,
             ),
             onPressed: () => (widget.title == AppStrings.bio)
-                ? _onConfirmTap
+                ? _onConfirmTap()
                 : (_textChanged.isNotEmpty)
                     ? _onConfirmTap()
                     : null,
@@ -102,15 +105,24 @@ class _ScreenInputState extends State<ScreenInput> {
                 keyboardType: TextInputType.multiline,
                 autocorrect: false,
                 maxLines: null,
+                textCapitalization: (_filterUsername)
+                    ? TextCapitalization.none
+                    : (_filterName)
+                        ? TextCapitalization.words
+                        : TextCapitalization.sentences,
                 inputFormatters: [
                   LengthLimitingTextInputFormatter(_maxLength),
-                  (_filter)
-                      ? FilteringTextInputFormatter.allow(RegExp("[a-zA-Z]"))
-                      : null,
+                  (_filterName)
+                      ? FilteringTextInputFormatter.allow(
+                          RegExp("[a-zA-Z+0-9+\.+ ]"))
+                      : (_filterUsername)
+                          ? FilteringTextInputFormatter.allow(
+                              RegExp("[a-zA-Z-0-9]"))
+                          : FilteringTextInputFormatter.deny("")
                 ],
                 controller: _textController,
                 onChanged: (value) => setState(() {
-                   _textChanged = value;
+                  _textChanged = value;
                 }),
                 cursorColor: AppColors.darkGreen,
                 cursorWidth: 2,
@@ -132,6 +144,7 @@ class _ScreenInputState extends State<ScreenInput> {
       );
 
   void _onConfirmTap() async {
+    print("true");
     // Username
     if (widget.title == AppStrings.username) {
       _usernameExists = await _usernameAlreadyExists();
@@ -157,19 +170,18 @@ class _ScreenInputState extends State<ScreenInput> {
       case (AppStrings.username):
         {
           _maxLength = 12;
-          _filter = true;
+          _filterUsername = true;
         }
         break;
       case (AppStrings.name):
         {
           _maxLength = 20;
-          _filter = true;
+          _filterName = true;
         }
         break;
       case (AppStrings.bio):
         {
           _maxLength = 200;
-          _filter = false;
         }
         break;
     }

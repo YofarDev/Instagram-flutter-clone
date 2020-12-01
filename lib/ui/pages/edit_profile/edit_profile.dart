@@ -47,6 +47,7 @@ class _EditProfileState extends State<EditProfile> {
                 child: Column(
                   children: [
                     CircleAvatar(
+                      backgroundColor: Colors.white,
                       backgroundImage: (_newPicture.isEmpty)
                           ? Utils.getProfilePic(_userUpdated.picture)
                           : FileImage(File(_newPicture)),
@@ -119,7 +120,7 @@ class _EditProfileState extends State<EditProfile> {
                           ),
                           GestureDetector(
                             onTap: () => _onInputTap(context, 2,
-                                AppStrings.username, _userUpdated.bio),
+                                AppStrings.bio, _userUpdated.bio),
                             child: TextField(
                               keyboardType: TextInputType.multiline,
                               maxLines: null,

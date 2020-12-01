@@ -10,6 +10,7 @@ class User {
   List<String> liked = [];
   List<String> mentions = [];
   List<String> publicationsId = [];
+  List<String> conversationsId = [];
 
   User.newUser({this.id, this.email, this.username, this.name});
 
@@ -24,7 +25,8 @@ class User {
       this.following,
       this.liked,
       this.mentions,
-      this.publicationsId});
+      this.publicationsId,
+      this.conversationsId});
 
   factory User.fromMap(Map<String, dynamic> map) {
     return new User(
@@ -39,6 +41,7 @@ class User {
       liked:  List.from(map['liked']),
       mentions:  List.from(map['mentions']),
       publicationsId:  List.from(map['publicationsId']),
+      conversationsId:  List.from(map['conversationsId']),
     );
   }
 
@@ -53,7 +56,8 @@ class User {
          'following': this.following,
          'liked': this.liked,
          'mentions': this.mentions,
-         'publicationsId': this.publicationsId,};
+         'publicationsId': this.publicationsId,
+         'conversationsId': this.conversationsId,};
 
 
   User.copyOf(User clone);

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/res/colors.dart';
+import 'package:instagram_clone/res/constants.dart';
 import 'package:instagram_clone/res/strings.dart';
 
 class AnimatedDrawer extends StatefulWidget {
@@ -46,44 +47,48 @@ class AnimatedDrawerState extends State<AnimatedDrawer>
   @override
   Widget build(BuildContext context) {
     _open = (_controller.value == 1);
-    return Stack(
-      children: [
-        // Drawer
-        AnimatedBuilder(
-          animation: _controller,
-          child: _drawer(),
-          builder: (context, child) {
-            _screenTranslate = Tween<Offset>(
-              begin: Offset(MediaQuery.of(context).size.width, 0),
-              end: Offset(MediaQuery.of(context).size.width / 3, 0),
-            ).animate(_controller);
-            return Transform.translate(
-              offset: _screenTranslate.value,
-              child: child,
-            );
-          },
-        ),
+    return SafeArea(
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // Drawer
+            AnimatedBuilder(
+              animation: _controller,
+              child: _drawer(),
+              builder: (context, child) {
+                _screenTranslate = Tween<Offset>(
+                  begin: Offset(MediaQuery.of(context).size.width, 0),
+                  end: Offset(MediaQuery.of(context).size.width / 3, 0),
+                ).animate(_controller);
+                return Transform.translate(
+                  offset: _screenTranslate.value,
+                  child: child,
+                );
+              },
+            ),
 
-        // Main screen
-        AnimatedBuilder(
-          animation: _controller,
-          child: _build(),
-          builder: (BuildContext context, Widget child) {
-            _screenTranslate = Tween<Offset>(
-              begin: Offset(0, 0),
-              end: Offset(-2 * MediaQuery.of(context).size.width / 3, 0),
-            ).animate(_controller);
-            return Transform.translate(
-              offset: _screenTranslate.value,
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: child,
-              ),
-            );
-          },
+            // Main screen
+            AnimatedBuilder(
+              animation: _controller,
+              child: _build(),
+              builder: (BuildContext context, Widget child) {
+                _screenTranslate = Tween<Offset>(
+                  begin: Offset(0, 0),
+                  end: Offset(-2 * MediaQuery.of(context).size.width / 3, 0),
+                ).animate(_controller);
+                return Transform.translate(
+                  offset: _screenTranslate.value,
+                  child: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    child: child,
+                  ),
+                );
+              },
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -178,7 +183,7 @@ class AnimatedDrawerState extends State<AnimatedDrawer>
                       ),
                       Container(
                         color: Colors.white,
-                        height: 47,
+                        height: Constants.BOTTOM_BAR_HEIGHT,
                         child: FlatButton.icon(
                           icon: Icon(Icons.settings),
                           label: Text(AppStrings.settings),

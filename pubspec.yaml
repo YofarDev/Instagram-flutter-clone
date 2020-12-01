@@ -48,6 +48,8 @@ dependencies:
   scrollable_positioned_list:
   pop_bottom_menu:
   shared_preferences:
+  path_provider:
+  intl:
 
 
 
@@ -61,6 +63,7 @@ flutter:
   assets:
     - assets/
     - assets/images/
+    - assets/videos/
 
 fonts:
   - family: Aveny

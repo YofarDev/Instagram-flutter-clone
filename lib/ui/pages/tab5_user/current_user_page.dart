@@ -14,6 +14,7 @@ import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/animated_drawer.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
+import 'package:instagram_clone/utils/extensions.dart';
 
 class CurrentUserPage extends StatefulWidget {
   final Function() onDrawerIconTap;
@@ -53,6 +54,7 @@ class _CurrentUserPageState extends State<CurrentUserPage>
       bottomNavigationBar: MyBottomAppBar(
         currentPage: 4,
         onPageChange: _onPageChanged,
+        darkTheme: false,
       ),
       body: NestedScrollView(
           headerSliverBuilder: (context, innerBoxScrolled) => [
@@ -196,7 +198,7 @@ class _CurrentUserPageState extends State<CurrentUserPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Utils.uppercaseFirstLetter(_currentUser.name),
+                    _currentUser.name.capitalizeFirstLetterOfWords,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
@@ -449,9 +451,14 @@ class _CurrentUserPageState extends State<CurrentUserPage>
     ));
   }
 
-  _onPageChanged(int page) => (page != 4) ? Navigator.of(context).push(
-        NoAnimationMaterialPageRoute(
-          builder: (context) => PagesHolder(page),
-        ),
-      ) : null;
+  _onPageChanged(int page) {
+    if (page != 4){ if (page ==2)  Navigator.of(context).push(NoAnimationMaterialPageRoute(
+      builder: (context) => PagesHolder(page,darkTheme: true),
+    ));
+    else
+      Navigator.of(context).push(NoAnimationMaterialPageRoute(
+        builder: (context) => PagesHolder(page, darkTheme: false),
+      ));
+    }
+  }
 }

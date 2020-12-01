@@ -138,7 +138,7 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
       await PublicationServices.addPublication(newPublication);
       // To remove all route and reload PagesHolder()
       Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => PagesHolder(0)),
+          MaterialPageRoute(builder: (context) => PagesHolder(0, darkTheme: false)),
           (Route<dynamic> route) => false);
     } else
       print("error uploading");

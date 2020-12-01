@@ -5,23 +5,22 @@ class MyBottomAppBar extends StatelessWidget {
   final int currentPage;
   final Function(int) onPageChange;
   final Function(int, int) onDoubleTap;
+  final bool darkTheme;
 
-  MyBottomAppBar({
-    @required this.currentPage,
-    @required this.onPageChange,
-    @required this.onDoubleTap,
-  });
+  MyBottomAppBar(
+      {@required this.currentPage,
+      @required this.onPageChange,
+      @required this.onDoubleTap,
+      @required this.darkTheme});
 
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
       elevation: 0,
+      color: (darkTheme) ? Colors.black : Colors.white,
       child: Stack(
         children: [
-          Container(
-            height: 1,
-            color: AppColors.grey1010
-          ),
+          Container(height: 1, color: AppColors.grey1010),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _tabs(),
@@ -36,8 +35,15 @@ class MyBottomAppBar extends StatelessWidget {
       GestureDetector(
         onDoubleTap: () => onDoubleTap(0, 0),
         child: IconButton(
-          icon:
-              (currentPage == 0) ? Icon(Icons.home) : Icon(Icons.home_outlined),
+          icon: (currentPage == 0)
+              ? Icon(
+                  Icons.home,
+                  color: _getColor(),
+                )
+              : Icon(
+                  Icons.home_outlined,
+                  color: _getColor(),
+                ),
           onPressed: () => onTabPressed(0),
         ),
       ),
@@ -45,32 +51,60 @@ class MyBottomAppBar extends StatelessWidget {
         onDoubleTap: () => onDoubleTap(1, 1),
         child: IconButton(
           icon: (currentPage == 1)
-              ? Icon(Icons.pageview)
-              : Icon(Icons.search_outlined),
+              ? Icon(
+                  Icons.pageview,
+                  color: _getColor(),
+                )
+              : Icon(
+                  Icons.search_outlined,
+                  color: _getColor(),
+                ),
           onPressed: () => onTabPressed(1),
         ),
       ),
       IconButton(
         icon: (currentPage == 2)
-            ? Icon(Icons.video_collection)
-            : Icon(Icons.video_collection_outlined),
+            ? Icon(
+                Icons.video_collection,
+                color: _getColor(),
+              )
+            : Icon(
+                Icons.video_collection_outlined,
+                color: _getColor(),
+              ),
         onPressed: () => onTabPressed(2),
       ),
       IconButton(
-        icon: (currentPage == 3) ? Icon(Icons.shop) : Icon(Icons.shop_outlined),
+        icon: (currentPage == 3)
+            ? Icon(
+                Icons.shop,
+                color: _getColor(),
+              )
+            : Icon(
+                Icons.shop_outlined,
+                color: _getColor(),
+              ),
         onPressed: () => onTabPressed(3),
       ),
       GestureDetector(
         onDoubleTap: () => onDoubleTap(4, 2),
         child: IconButton(
           icon: (currentPage == 4)
-              ? Icon(Icons.account_circle)
-              : Icon(Icons.account_circle_outlined),
+              ? Icon(
+                  Icons.account_circle,
+                  color: _getColor(),
+                )
+              : Icon(
+                  Icons.account_circle_outlined,
+                  color: _getColor(),
+                ),
           onPressed: () => onTabPressed(4),
         ),
       )
     ];
   }
+
+  Color _getColor() => (darkTheme) ? Colors.white : Colors.black;
 
   void onTabPressed(int n) {
     onPageChange(n);

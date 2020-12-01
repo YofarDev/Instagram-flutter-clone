@@ -10,7 +10,7 @@ class UserHolder extends StatefulWidget {
   final bool isCurrent;
   final User user;
 
-  UserHolder({this.isCurrent, this.user});
+  UserHolder({@required this.isCurrent, this.user});
 
   @override
   _UserHolderState createState() => _UserHolderState();
@@ -18,11 +18,11 @@ class UserHolder extends StatefulWidget {
 
 class _UserHolderState extends State<UserHolder> {
   final GlobalKey<AnimatedDrawerState> key = GlobalKey<AnimatedDrawerState>();
-  String username;
+  String _username;
 
   @override
   void initState() {
-    username = "";
+    _username = (widget.user != null) ? widget.user.username : "";
     _getUsername();
     super.initState();
   }
@@ -32,7 +32,7 @@ class _UserHolderState extends State<UserHolder> {
     return (widget.isCurrent)
         ? AnimatedDrawer(
             key: key,
-            title: username,
+            title: _username,
             items: _itemsDrawer(),
             child: CurrentUserPage(_onDrawerIconTap),
           )
@@ -77,7 +77,7 @@ class _UserHolderState extends State<UserHolder> {
   void _getUsername() async {
     User current = await UserServices.getCurrentUser();
     setState(() {
-      username = current.username;
+    _username = current.username;
     });
   }
 }

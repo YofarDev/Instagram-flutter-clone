@@ -108,7 +108,10 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
               height: MediaQuery.of(context).size.width,
               child: _mediaOnView != null
                   ? (_mediaOnView.isVideo)
-                      ? VideoPlayerWidget(_mediaOnView.path, true)
+                      ? VideoPlayerWidget(
+                          path: _mediaOnView.path,
+                          isFile: true,
+                        )
                       : AspectRatio(
                           aspectRatio: 1,
                           child: ClipRect(

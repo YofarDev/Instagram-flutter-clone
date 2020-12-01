@@ -129,6 +129,7 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+
             Container(
               height: 1,
               width: 150,
@@ -189,7 +190,7 @@ class _LoginPageState extends State<LoginPage> {
           );
   }
 
-  void _onEmailButtonPressed() {
+  void _onEmailButtonPressed()async {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => RegisterPage()))
         .then((value) => _uploadPicture(

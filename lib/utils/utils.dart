@@ -1,10 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
-import 'package:instagram_clone/res/strings.dart';
-import 'package:flutter/material.dart';
 import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/user_holder.dart';
-import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -36,8 +34,6 @@ class Utils {
   }
 
   ///*** OTHERS ***///
-  static String uppercaseFirstLetter(String str) =>
-      "${str[0].toUpperCase()}${str.substring(1).toLowerCase()}";
 
   // ToDo : manage locale
   static String getHowLongAgo(String dateStr) {
@@ -57,7 +53,31 @@ class Utils {
   static navToUserDetails(BuildContext context, User user) =>
       Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => (user.id != UserServices.currentUserId)
-            ? PagesHolder(4, user: user,)
-            : PagesHolder(4),
+            ? PagesHolder(4, user: user)
+            : UserHolder(
+                isCurrent: true,
+                user: user,
+              ),
       ));
+
+  static String getConversationId(List<String> ids) {
+    ids.sort();
+    String conversationId = "";
+    for (int i = 0; i < ids[0].length; i++) {
+      var char1 = ids[0][i];
+      var char2 = ids[1][i];
+      conversationId += char1 + char2;
+    }
+    return conversationId;
+  }
+
+  static List<String> getUserIdsFromConversationId(String conversationId) {
+    String id1 = "";
+    String id2 = "";
+    for (int i = 0; i < conversationId.length; i += 2) {
+      id1 += conversationId[i];
+      id2 += conversationId[i + 1];
+    }
+    return [id1, id2];
+  }
 }

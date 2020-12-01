@@ -3,13 +3,11 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/publication_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/comments_page.dart';
-import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/content_slider.dart';
-import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
+import 'package:instagram_clone/utils/extensions.dart';
 
 class PublicationItem extends StatefulWidget {
   final Publication publication;
@@ -93,7 +91,7 @@ class _PublicationItemState extends State<PublicationItem> {
     if (contentList.length > 1)
       return ContentSlider(contentList);
     else if (contentList[0].isVideo)
-      return VideoPlayerWidget(contentList[0].url, false);
+      return VideoPlayerWidget(path: contentList[0].url, isFile: false);
     else
       return Image.network(
         Utils.strToItemContent(_publication.content[0]).url,
@@ -245,8 +243,8 @@ class _PublicationItemState extends State<PublicationItem> {
           Padding(
             padding: EdgeInsets.only(top: 8),
             child: Text(
-              Utils.uppercaseFirstLetter(
-                  Utils.getHowLongAgoLonger(_publication.date)),
+              Utils.getHowLongAgoLonger(_publication.date)
+                  .capitalizeFirstLetter,
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 12,

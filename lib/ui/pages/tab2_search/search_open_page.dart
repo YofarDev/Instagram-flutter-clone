@@ -15,7 +15,7 @@ class SearchOpenPage extends StatefulWidget {
 
 class _SearchOpenPageState extends State<SearchOpenPage>
     with SingleTickerProviderStateMixin {
-  static const String SHARED_KEY = "recent";
+  String sharedKey = UserServices.currentUserId;
   PageController _pageController;
   TabController _tabController;
   TextEditingController _textEditingController;
@@ -24,6 +24,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
   List<User> _users;
   List<User> _searchOutput;
   bool _isSearching;
+  Future _recentList;
 
   @override
   void initState() {
@@ -36,6 +37,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     _users = [];
     _searchOutput = [];
     _isSearching = false;
+    _recentList = _getRecentList();
   }
 
   @override
@@ -140,7 +142,7 @@ class _SearchOpenPageState extends State<SearchOpenPage>
       );
 
   Widget _recent() => FutureBuilder(
-        future: _getRecentList(),
+        future: _recentList,
         builder: (context, snapshot) {
           Widget widget;
           if (snapshot.hasData)
@@ -160,9 +162,8 @@ class _SearchOpenPageState extends State<SearchOpenPage>
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Text(AppStrings.recent,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 18
-                    )),
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               ),
               widget,
             ],
@@ -201,9 +202,12 @@ class _SearchOpenPageState extends State<SearchOpenPage>
                 ],
               ),
               (!_isSearching)
-                  ? Icon(
-                      Icons.close,
-                      size: 12,
+                  ? GestureDetector(
+                      onTap: () => _removeRecentUser(user),
+                      child: Icon(
+                        Icons.close,
+                        size: 15,
+                      ),
                     )
                   : Container(),
             ],
@@ -259,21 +263,30 @@ class _SearchOpenPageState extends State<SearchOpenPage>
 
   void _onUserClick(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var list = prefs.getStringList(SHARED_KEY);
-    list.add(user.id);
-    await prefs.setStringList(SHARED_KEY, list);
-    prefs = await SharedPreferences.getInstance();
-    print(prefs.getStringList(SHARED_KEY).length);
-    //Utils.navToUserDetails(context, user);
-
+    var list = prefs.getStringList(sharedKey) ?? [];
+    if (list.contains(user.id)) list.remove(user.id);
+    list.insert(0, user.id);
+    if (list.length > 10) list = list.getRange(0, 9);
+    prefs.setStringList(sharedKey, list);
+    Utils.navToUserDetails(context, user);
   }
 
   Future<List<User>> _getRecentList() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String> recent = (prefs.getStringList(SHARED_KEY) ?? []);
-    recent.reversed.take(10);
+    List<String> recent = prefs.getStringList(sharedKey) ?? [];
     List<User> users = [];
     for (String id in recent) users.add(await UserServices.getUser(id));
     return users;
+  }
+
+  void _removeRecentUser(User user) async {
+    var recent = await _getRecentList();
+    var list = recent.map((e) => e.id).toList();
+    list.remove(user.id);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setStringList(sharedKey, list);
+    setState(() {
+      _recentList = _getRecentList();
+    });
   }
 }

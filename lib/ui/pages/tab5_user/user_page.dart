@@ -8,8 +8,10 @@ import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
 import 'package:instagram_clone/ui/common_elements/user_list_publications/user_publications_page.dart';
+import 'package:instagram_clone/ui/pages/message/conversation_page.dart';
 import 'package:instagram_clone/utils/utils.dart';
 import 'package:pop_bottom_menu/pop_bottom_menu.dart';
+import 'package:instagram_clone/utils/extensions.dart';
 
 class UserPage extends StatefulWidget {
   final User user;
@@ -187,7 +189,7 @@ class _UserPageState extends State<UserPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    Utils.uppercaseFirstLetter(_userDetails.name),
+                    _userDetails.name.capitalizeFirstLetterOfWords,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                     ),
@@ -215,7 +217,7 @@ class _UserPageState extends State<UserPage>
                 padding: const EdgeInsets.only(left: 3),
                 child: OutlineButton(
                   child: Text(AppStrings.message),
-                  onPressed: () {},
+                  onPressed: () => _onMessageTap(),
                 ),
               ),
             )
@@ -350,6 +352,32 @@ class _UserPageState extends State<UserPage>
     return icon;
   }
 
+  void _showMenu() => showModalBottomSheet(
+        context: context,
+        builder: (context) => PopBottomMenu(
+            title: TitlePopBottomMenu(label: _userDetails.username),
+            items: [
+              ItemPopBottomMenu(
+                label: AppStrings.notifications,
+                icon: Icon(
+                  Icons.navigate_next,
+                  color: Colors.grey,
+                ),
+              ),
+              ItemPopBottomMenu(
+                label: AppStrings.mute,
+                icon: Icon(
+                  Icons.navigate_next,
+                  color: Colors.grey,
+                ),
+              ),
+              ItemPopBottomMenu(
+                onPressed: () => _unfollow(),
+                label: AppStrings.unfollow,
+              ),
+            ]),
+      );
+
   ///*** DATA ***///
   void _getFollowingState() async {
     User current = await UserServices.getCurrentUser();
@@ -428,29 +456,13 @@ class _UserPageState extends State<UserPage>
     Navigator.of(context).pop();
   }
 
-  void _showMenu() => showModalBottomSheet(
-        context: context,
-        builder: (context) => PopBottomMenu(
-            title: TitlePopBottomMenu(label: _userDetails.username),
-            items: [
-              ItemPopBottomMenu(
-                label: AppStrings.notifications,
-                icon: Icon(
-                  Icons.navigate_next,
-                  color: Colors.grey,
-                ),
-              ),
-              ItemPopBottomMenu(
-                label: AppStrings.mute,
-                icon: Icon(
-                  Icons.navigate_next,
-                  color: Colors.grey,
-                ),
-              ),
-              ItemPopBottomMenu(
-                onPressed: () => _unfollow(),
-                label: AppStrings.unfollow,
-              ),
-            ]),
-      );
+  void _onMessageTap() async {
+    User current = await UserServices.getCurrentUser();
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (context) => ConversationPage(
+        toUser: _userDetails,
+        fromUser: current,
+      ),
+    ));
+  }
 }

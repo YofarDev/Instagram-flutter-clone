@@ -104,6 +104,12 @@ class AppStrings {
   static final String mute = "Mute";
   static final String unfollow = "Unfollow";
   static final String recent = "Recent";
-
+  static final String directConv = "Direct";
   static final String settings = "Settings";
+
+  static final String messages = "Messages";
+  static final String emptySend = "Send a Message";
+  static final String emptyMessage ="Message Friends with Direct";
+  static final String emptyMessageBody = "Send private messages or share your favorite posts directly with friends.";
+
 }
