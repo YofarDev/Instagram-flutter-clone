@@ -83,6 +83,5 @@ class _UserPublicationsPageState extends State<UserPublicationsPage> {
             Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => PagesHolder(selected),
         )),
-        onDoubleTap: (int selected, int controller) {},
       );
 }

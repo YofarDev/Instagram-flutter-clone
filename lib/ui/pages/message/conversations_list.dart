@@ -47,10 +47,21 @@ class _ConversationsListState extends State<ConversationsList> {
               color: Colors.black,
             ),
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.videocam_outlined),
+              onPressed: () {},
+            ),
+            IconButton(
+              icon: Icon(Icons.create_outlined),
+              onPressed: () {},
+            ),
+          ],
         ),
         body: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            _searchBar(),
             Padding(
               padding: const EdgeInsets.only(left: 20, top: 10),
               child: Text(
@@ -79,6 +90,28 @@ class _ConversationsListState extends State<ConversationsList> {
     );
   }
 
+  Widget _searchBar() => Container(
+        padding: const EdgeInsets.all(20),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: TextField(
+            enabled: false,
+            decoration: InputDecoration(
+              prefixIcon: Icon(
+                Icons.search,
+                color: AppColors.grey50,
+              ),
+              filled: true,
+              fillColor: AppColors.grey1010,
+              hintText: AppStrings.search,
+              hintStyle: TextStyle(color:Colors.grey, ),
+              focusedBorder: InputBorder.none,
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      );
+
   Widget _buildConversationsList(List<Conversation> conversations) =>
       ListView.builder(
         itemCount: conversations.length,
@@ -104,75 +137,91 @@ class _ConversationsListState extends State<ConversationsList> {
 
   Widget _itemList(Conversation conversation, User user) {
     bool _hasNewMessage = conversation.getCurrentNotifications > 0;
-    return GestureDetector(
-      onTap: () => onConversationTap(conversation, user),
-      child: Container(
-        padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: Colors.white,
-                  backgroundImage: Utils.getProfilePic(user.picture),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 20, top: 4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        user.name,
-                        style: (_hasNewMessage)
-                            ? TextStyle(
-                                fontWeight: FontWeight.bold,
-                              )
-                            : null,
-                      ),
-                      Row(
-                        children: [
-                          Text(
-                            "${conversation.lastMessageBody.substring(0, 22)}...",
-                            style: (_hasNewMessage)
-                                ? TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  )
-                                : TextStyle(color: AppColors.darkGrey),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 4),
-                            child: Text(
-                              Utils.getHowLongAgo(conversation.lastMessageDate),
-                              style: TextStyle(color: AppColors.silver),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 30, 20, 0),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          GestureDetector(
+            onTap: () => onConversationTap(conversation, user),
+            child: Container(
+              color: Colors.white,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: Colors.white,
+                    backgroundImage: Utils.getProfilePic(user.picture),
                   ),
-                ),
-              ],
-            ),
-            (_hasNewMessage)
-                ? Align(
-              alignment: Alignment.centerRight,
-                  child: Container(
-            padding: EdgeInsets.only(top:20),
-                      height: 10,
-                      width: 10,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(100),
-                        color: Colors.blue,
-                      ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, top: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user.name,
+                          style: (_hasNewMessage)
+                              ? TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                )
+                              : null,
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                           _getLastMessage(conversation.lastMessageBody),
+                              style: (_hasNewMessage)
+                                  ? TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    )
+                                  : TextStyle(color: AppColors.darkGrey),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.only(left: 4),
+                              child: Text(
+                                Utils.getHowLongAgo(conversation.lastMessageDate),
+                                style: TextStyle(color: AppColors.silver),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                )
-                : Container(),
-          ],
-        ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          Align(
+            alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  (_hasNewMessage)
+                      ? Container(
+                    height: 10,
+                    width: 10,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(100),
+                      color: Colors.blue,
+                    ),
+                  )
+                      : Container(),
+                  Container(
+                    padding: EdgeInsets.only(left:20, top:4),
+                    child: Icon(
+            Icons.camera_alt_outlined,
+            color: AppColors.grey1040,
+          ),
+                  ),
+
+                ],
+              )),
+        ],
       ),
     );
   }
@@ -219,7 +268,8 @@ class _ConversationsListState extends State<ConversationsList> {
     for (String conversationId in list)
       conversations
           .add(await ConversationService.getConversation(conversationId));
-    conversations.sort((a, b) => b.lastMessageDate.compareTo(a.lastMessageDate));
+    conversations
+        .sort((a, b) => b.lastMessageDate.compareTo(a.lastMessageDate));
     return conversations;
   }
 
@@ -242,5 +292,10 @@ class _ConversationsListState extends State<ConversationsList> {
     setState(() {
       _conversations = _getConversations();
     });
+  }
+  String _getLastMessage(String text){
+    if (text.length >= 23)
+    return "${text.substring(0, 22)}...";
+    else return text;
   }
 }

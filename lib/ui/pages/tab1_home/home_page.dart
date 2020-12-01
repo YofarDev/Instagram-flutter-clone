@@ -38,6 +38,7 @@ class _HomePageState extends State<HomePage>
     super.build(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxScrolled) => [
           HomeAppBar(

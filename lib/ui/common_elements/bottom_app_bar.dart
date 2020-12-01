@@ -4,13 +4,11 @@ import 'package:instagram_clone/res/colors.dart';
 class MyBottomAppBar extends StatelessWidget {
   final int currentPage;
   final Function(int) onPageChange;
-  final Function(int, int) onDoubleTap;
   final bool darkTheme;
 
   MyBottomAppBar(
       {@required this.currentPage,
       @required this.onPageChange,
-      @required this.onDoubleTap,
       @required this.darkTheme});
 
   @override
@@ -33,7 +31,6 @@ class MyBottomAppBar extends StatelessWidget {
   List<Widget> _tabs() {
     return [
       GestureDetector(
-        onDoubleTap: () => onDoubleTap(0, 0),
         child: IconButton(
           icon: (currentPage == 0)
               ? Icon(
@@ -48,7 +45,6 @@ class MyBottomAppBar extends StatelessWidget {
         ),
       ),
       GestureDetector(
-        onDoubleTap: () => onDoubleTap(1, 1),
         child: IconButton(
           icon: (currentPage == 1)
               ? Icon(
@@ -87,7 +83,6 @@ class MyBottomAppBar extends StatelessWidget {
         onPressed: () => onTabPressed(3),
       ),
       GestureDetector(
-        onDoubleTap: () => onDoubleTap(4, 2),
         child: IconButton(
           icon: (currentPage == 4)
               ? Icon(

@@ -29,6 +29,7 @@ class _PagesHolderState extends State<PagesHolder> {
   List<Widget> _screens = [];
   bool _showBottomBar;
   bool _darkThemeBottomBar;
+  bool _reload = false;
 
   @override
   void initState() {
@@ -67,8 +68,6 @@ class _PagesHolderState extends State<PagesHolder> {
                 darkTheme: _darkThemeBottomBar,
                 currentPage: _currentPage,
                 onPageChange: (int selected) => _onPageChanged(selected),
-                onDoubleTap: (int selected, int controller) =>
-                    _onDoubleTap(selected, controller),
               )
             : null,
       ),
@@ -76,16 +75,21 @@ class _PagesHolderState extends State<PagesHolder> {
   }
 
   _onPageChanged(int page) {
+    _setSpecificSettings(page);
     setState(() {
+      _reload = _currentPage == page;
       _currentPage = page;
       // Need to hide bottom bar for current user page (for the animated drawer)
-      if (page == 4 && widget.user == null)
+      if (page == 4 && widget.user == null || _reload)
         _showBottomBar = false;
       else
         _showBottomBar = true;
+      _screens = _getScreens();
+
     });
-    _setSpecificSettings(page);
     _pageController.jumpToPage(page);
+
+
   }
 
   void _setSpecificSettings(int page) {
@@ -110,19 +114,15 @@ class _PagesHolderState extends State<PagesHolder> {
     }
   }
 
-  _onDoubleTap(int page, int index) {
-    if (_currentPage != page)
-      _onPageChanged(page);
-    else if (_scrollControllers[index].hasClients)
-      _scrollControllers[index].jumpTo(1);
-  }
+
 
   _getScreens() => [
         HomePage(_scrollControllers[0]),
         SearchPage(_scrollControllers[1]),
         ReelsPage(),
         ShopPage(),
-        (widget.user != null)
+    // If we have a user as a parameter, we want the UserDetailsPage
+        (widget.user != null && !_reload)
             ? UserHolder(isCurrent: false, user: widget.user)
             : UserHolder(
                 isCurrent: true,

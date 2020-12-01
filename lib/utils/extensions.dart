@@ -16,3 +16,11 @@ extension ConversationUtils on Conversation{
   int get getOtherNotifications => (this.user1 == UserServices.currentUserId) ? this.user2Notifications : this.user1Notifications;
   int get getCurrentNotifications => (this.user1 == UserServices.currentUserId) ? this.user1Notifications : this.user2Notifications;
 }
+
+extension DateHelpers on DateTime {
+  bool isToday() {
+    final now = DateTime.now();
+    return now.day == this.day &&
+        now.month == this.month &&
+        now.year == this.year;
+  }}

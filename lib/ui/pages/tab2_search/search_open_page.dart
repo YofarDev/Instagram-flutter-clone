@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
@@ -38,26 +39,30 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     _searchOutput = [];
     _isSearching = false;
     _recentList = _getRecentList();
+
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _appBar(),
-      body: Column(
-        children: [
-          _tabBar(),
-          Container(
-            height: 1,
-            color: AppColors.grey1010,
-          ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: _tabView(),
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: _appBar(),
+        body: Column(
+          children: [
+            _tabBar(),
+            Container(
+              height: 1,
+              color: AppColors.grey1010,
             ),
-          )
-        ],
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: _tabView(),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
@@ -171,49 +176,52 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         },
       );
 
-  Widget _itemUser(User user) => GestureDetector(
-        onTap: () => _onUserClick(user),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Wrap(
-                children: [
-                  CircleAvatar(
-                    backgroundColor: Colors.white,
-                    backgroundImage: Utils.getProfilePic(user.picture),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.only(left: 20, top: 4),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.username,
-                        ),
-                        Text(_getTextInfo(user),
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.grey))
-                      ],
+  Widget _itemUser(User user) => Padding(
+    padding: const EdgeInsets.all(20),
+    child: GestureDetector(
+      onTap: () => _onUserClick(user),
+      child: Container(
+        color: Colors.white,
+        child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Wrap(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.white,
+                      backgroundImage: Utils.getProfilePic(user.picture),
                     ),
-                  ),
-                ],
-              ),
-              (!_isSearching)
-                  ? GestureDetector(
-                      onTap: () => _removeRecentUser(user),
-                      child: Icon(
-                        Icons.close,
-                        size: 15,
+                    Padding(
+                      padding: EdgeInsets.only(left: 20, top: 4),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.username,
+                          ),
+                          Text(_getTextInfo(user),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey))
+                        ],
                       ),
-                    )
-                  : Container(),
-            ],
-          ),
-        ),
-      );
+                    ),
+                  ],
+                ),
+                (!_isSearching)
+                    ? GestureDetector(
+                        onTap: () => _removeRecentUser(user),
+                        child: Icon(
+                          Icons.close,
+                          size: 15,
+                        ),
+                      )
+                    : Container(),
+              ],
+            ),
+      ),
+    ),
+  );
 
   String _getHint() {
     switch (_tabSelected) {

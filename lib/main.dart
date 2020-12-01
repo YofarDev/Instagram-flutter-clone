@@ -13,11 +13,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(MyApp());
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.white,
+    statusBarBrightness: Brightness.dark,
     statusBarIconBrightness: Brightness.dark,
   ));
+  runApp(MyApp());
+
 }
 
 class MyApp extends StatelessWidget {
