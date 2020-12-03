@@ -7,8 +7,9 @@ class VideoPlayerWidget extends StatefulWidget {
   final String path;
   final bool isFile;
   final Function(bool) onMute;
+  final bool crop;
 
-  VideoPlayerWidget({this.path, this.isFile, this.onMute});
+  VideoPlayerWidget({this.path, this.isFile, this.onMute, this.crop});
 
   @override
   _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
@@ -18,6 +19,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   VideoPlayerController _controller;
   Future<void> _initializeVideoPlayerFuture;
   bool _isMute;
+  bool _crop;
 
   @override
   void initState() {
@@ -30,6 +32,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _controller = VideoPlayerController.asset(widget.path);
     _initializeVideoPlayerFuture = _controller.initialize();
 
+    _crop = widget.crop ?? false;
   }
 
   @override
@@ -42,16 +45,33 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
           _controller.setLooping(true);
           _controller.play();
           return GestureDetector(
-            onTap: (){
-              if (_isMute) _controller.setVolume(1);
-              else _controller.setVolume(0);
+            onTap: () {
+              if (_isMute)
+                _controller.setVolume(1);
+              else
+                _controller.setVolume(0);
               _isMute = !_isMute;
               widget.onMute(_isMute);
-            } ,
-            child: AspectRatio(
-              aspectRatio: _controller.value.aspectRatio,
-              child: VideoPlayer(_controller),
-            ),
+            },
+            child: (_crop)
+                ? ClipRect(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width,
+                      height: MediaQuery.of(context).size.width,
+                      child: Wrap(
+                        children: [
+                          AspectRatio(
+                            aspectRatio: _controller.value.aspectRatio,
+                            child: VideoPlayer(_controller),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                : AspectRatio(
+                    aspectRatio: _controller.value.aspectRatio,
+                    child: VideoPlayer(_controller),
+                  ),
           );
         } else
           return Center(child: CircularProgressIndicator());
@@ -63,5 +83,21 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   void dispose() {
     super.dispose();
     _controller.dispose();
+  }
+}
+
+class MyCustomClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+
+    path.close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper oldClipper) {
+    return false;
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:instagram_clone/models/publication.dart';
@@ -5,8 +7,13 @@ import 'package:instagram_clone/ui/common_elements/video_player.dart';
 
 class ContentSlider extends StatefulWidget {
   final List<Content> contentList;
+  final List<Uint8List> contentBytesList;
+  final bool isBytes;
+  final showDots;
+  final Function(int) onMediaChanged;
 
-  ContentSlider(this.contentList);
+  ContentSlider(
+      {this.contentList, this.contentBytesList, this.isBytes, this.showDots, this.onMediaChanged});
 
   _ContentSliderState createState() => _ContentSliderState();
 }
@@ -16,14 +23,16 @@ class _ContentSliderState extends State<ContentSlider> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> content = _getContentWidgetList(widget.contentList);
+    List<Widget> content = (widget.isBytes)
+        ? _getContentBytesWidgetList(widget.contentBytesList)
+        : _getContentWidgetList(widget.contentList);
     return Container(
       color: Colors.white,
       child: Column(children: [
         CarouselSlider(
           items: content,
           options: CarouselOptions(
-              aspectRatio: widget.contentList[0].aspectRatio,
+              aspectRatio: 1,
               viewportFraction: 1.0,
               scrollPhysics: PageScrollPhysics(),
               pageSnapping: false,
@@ -33,25 +42,29 @@ class _ContentSliderState extends State<ContentSlider> {
                 setState(() {
                   _current = index;
                 });
+                widget.onMediaChanged(index);
               }),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: content.map((e) {
-            int index = content.indexOf(e);
-            return Container(
-              width: 8.0,
-              height: 8.0,
-              margin: EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: _current == index
-                    ? Colors.cyan
-                    : Color.fromRGBO(0, 0, 0, 0.4),
-              ),
-            );
-          }).toList(),
-        ),
+        widget.showDots
+            ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: content.map((e) {
+                  int index = content.indexOf(e);
+                  return Container(
+                    width: 8.0,
+                    height: 8.0,
+                    margin:
+                        EdgeInsets.symmetric(vertical: 10.0, horizontal: 2.0),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _current == index
+                          ? Colors.cyan
+                          : Color.fromRGBO(0, 0, 0, 0.4),
+                    ),
+                  );
+                }).toList(),
+              )
+            : Container(),
       ]),
     );
   }
@@ -71,6 +84,19 @@ class _ContentSliderState extends State<ContentSlider> {
                 fit: BoxFit.fitWidth,
               ),
             );
+
+    return contentWidgets;
+  }
+
+  _getContentBytesWidgetList(List<Uint8List> bytesList) {
+    List<Widget> contentWidgets = [];
+    for (Uint8List bytes in bytesList)
+      contentWidgets.add(
+        Image(
+          image: MemoryImage(bytes),
+          fit: BoxFit.fitWidth,
+        ),
+      );
 
     return contentWidgets;
   }

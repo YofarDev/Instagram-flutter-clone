@@ -24,6 +24,7 @@ class _ReelsPageState extends State<ReelsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Container(
         child: (_statusBarHeight == 0)
             ? LoadingWidget()

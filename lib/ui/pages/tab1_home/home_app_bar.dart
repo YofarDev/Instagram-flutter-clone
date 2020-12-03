@@ -25,21 +25,21 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
             Icons.control_point,
             color: Colors.black,
           ),
-          onPressed: ()=>onIconTap(0),
+          onPressed: () => onIconTap(0),
         ),
         IconButton(
           icon: Icon(
             Icons.favorite_border_outlined,
             color: Colors.black,
           ),
-             onPressed: ()=>onIconTap(1),
+          onPressed: () => onIconTap(1),
         ),
         IconButton(
           icon: Icon(
             Icons.send_outlined,
             color: Colors.black,
           ),
-            onPressed: ()=>onIconTap(2),
+          onPressed: () => onIconTap(2),
         ),
       ],
     );

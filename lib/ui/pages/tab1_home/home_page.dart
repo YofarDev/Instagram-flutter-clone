@@ -8,7 +8,7 @@ import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/pages/message/conversations_list.dart';
 import 'package:instagram_clone/ui/pages/tab1_home/home_app_bar.dart';
 import 'package:instagram_clone/ui/common_elements/publication_item.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/picker_gallery_page.dart';
+import 'package:instagram_clone/ui/common_elements/img_picker/picker_gallery_page.dart';
 
 class HomePage extends StatefulWidget {
   @override

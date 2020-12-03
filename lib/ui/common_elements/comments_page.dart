@@ -10,6 +10,8 @@ import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/utils/utils.dart';
 
+import 'list_users/likes_page.dart';
+
 class CommentsPage extends StatefulWidget {
   final Publication publication;
   final User currentUser;
@@ -259,11 +261,14 @@ class _CommentsPageState extends State<CommentsPage> {
                             (comment.likes.length > 0)
                                 ? Padding(
                                     padding: EdgeInsets.only(left: 20),
-                                    child: Text(
-                                      _getLikesStr(comment.likes.length),
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontWeight: FontWeight.bold,
+                                    child: GestureDetector(
+                                      onTap: () => _onLikesListTap(),
+                                      child: Text(
+                                        _getLikesStr(comment.likes.length),
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
                                   )
@@ -437,7 +442,7 @@ class _CommentsPageState extends State<CommentsPage> {
   void _deleteComment() async {
     if (_commentToDelete != null) {
       // Show Snackbar "Deleting..."
-      _key.currentState.showSnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(AppStrings.deleteComment),
           behavior: SnackBarBehavior.floating,
@@ -476,4 +481,10 @@ class _CommentsPageState extends State<CommentsPage> {
       });
     }
   }
+
+  void _onLikesListTap() => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => LikesPage(_publication.likes),
+        ),
+      );
 }

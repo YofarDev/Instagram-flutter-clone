@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:instagram_clone/models/user.dart';
 
@@ -50,10 +52,5 @@ class Content {
   double aspectRatio;
 
   Content(this.isVideo, this.url, this.aspectRatio);
-
-  Map<String, dynamic> toMap() => {
-        'isVideo': this.isVideo,
-        'url': this.url,
-        'aspectRatio': this.aspectRatio,
-      };
 }
+

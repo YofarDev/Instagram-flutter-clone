@@ -7,7 +7,7 @@ import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/media_services.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/services/user_services.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/medias_view_page.dart';
+import 'package:instagram_clone/ui/common_elements/img_picker/medias_view_page.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
 

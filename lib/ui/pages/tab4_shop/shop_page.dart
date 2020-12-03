@@ -1,4 +1,4 @@
-import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
+
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/ui/pages/temp/switch_test.dart';
 import 'package:photo_view/photo_view.dart';

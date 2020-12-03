@@ -23,7 +23,6 @@ class _UserHolderState extends State<UserHolder> {
   @override
   void initState() {
     _username = (widget.user != null) ? widget.user.username : "";
-    print(_username);
     _getUsername();
     super.initState();
   }

@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
         child: GestureDetector(
           onTap: () => {
             context.read<AuthenticationService>().signIn(
-                  key: scaffoldKey,
+                  context: context,
                   email: "admin@mail.com",
                   password: "pass1234",
                 )
@@ -129,7 +129,6 @@ class _LoginPageState extends State<LoginPage> {
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-
             Container(
               height: 1,
               width: 150,
@@ -186,11 +185,11 @@ class _LoginPageState extends State<LoginPage> {
       context.read<AuthenticationService>().signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
-            key: scaffoldKey,
+            context: context,
           );
   }
 
-  void _onEmailButtonPressed()async {
+  void _onEmailButtonPressed() async {
     Navigator.of(context)
         .push(MaterialPageRoute(builder: (context) => RegisterPage()))
         .then((value) => _uploadPicture(

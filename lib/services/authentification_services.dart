@@ -15,8 +15,11 @@ class AuthenticationService {
     await _firebaseAuth.signOut();
   }
 
-  Future<String> signIn(
-      {String email, String password, GlobalKey<ScaffoldState> key}) async {
+  Future<String> signIn({
+    BuildContext context,
+    String email,
+    String password,
+  }) async {
     try {
       await _firebaseAuth.signInWithEmailAndPassword(
           email: email, password: password);
@@ -49,19 +52,21 @@ class AuthenticationService {
           errorMessage = "An undefined Error happened.";
       }
       if (errorMessage.isNotEmpty)
-        key.currentState.showSnackBar(SnackBar(content: Text(errorMessage)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(errorMessage)));
 
       return e.message;
     }
   }
 
-  Future<String> signUp(
-      {String email,
-      String username,
-      String password,
-      String picture,
-      GlobalKey<ScaffoldState> key}) async {
-    key.currentState.showSnackBar(SnackBar(
+  Future<String> signUp({
+    BuildContext context,
+    String email,
+    String username,
+    String password,
+    String picture,
+  }) async {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(
         AppStrings.processing,
       ),
@@ -69,15 +74,18 @@ class AuthenticationService {
     try {
       await _firebaseAuth.createUserWithEmailAndPassword(
           email: email, password: password);
-      UserServices.addUser(
-          User.newUser(id: fb.FirebaseAuth.instance.currentUser.uid,email: email, name: username, username: username));
+      UserServices.addUser(User.newUser(
+          id: fb.FirebaseAuth.instance.currentUser.uid,
+          email: email,
+          name: username,
+          username: username));
       return "Signed up";
     } on fb.FirebaseAuthException catch (e) {
       if (e.message == "The email address is badly formatted.")
-        key.currentState
+        ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(AppStrings.errorEmailFormat)));
       else
-        key.currentState.showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text(
             AppStrings.errorTryAgain,
           ),

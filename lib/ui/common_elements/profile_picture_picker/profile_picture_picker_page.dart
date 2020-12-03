@@ -3,17 +3,14 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_crop/image_crop.dart';
 import 'package:instagram_clone/models/media_file.dart';
-import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/common_elements/profile_picture_picker/crop.dart'
     as custom;
 import 'package:instagram_clone/ui/common_elements/profile_picture_picker/inverted_circle_clipper.dart';
-
 import 'package:photo_manager/photo_manager.dart';
 
 class ProfilePicturePickerPage extends StatefulWidget {
@@ -258,8 +255,6 @@ class _ProfilePicturePickerPageState extends State<ProfilePicturePickerPage> {
           path: file.path,
           thumb: thumb,
           isVideo: false,
-          width: entity.width,
-          height: entity.width,
         ));
       }
     }

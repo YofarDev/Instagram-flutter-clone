@@ -18,7 +18,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage>
     with AutomaticKeepAliveClientMixin {
   ScrollController _scrollController;
-  static const int _itemCount = 21;
+  static const int _itemCount = 63;
   List<StaggeredTile> _tiles;
 
   @override
@@ -192,7 +192,7 @@ class _SearchPageState extends State<SearchPage>
       "Fit guy, really nice body",
       "Funny video",
       "Cooking recipe",
-      "DIY stuff, impressive but useless"
+      "DIY stuff, impressive but useless",
           "Meaningful quote",
       "Ads",
       "Sponsored publication",

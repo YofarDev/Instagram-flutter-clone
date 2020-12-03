@@ -1,24 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/services/publication_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/bottom_app_bar.dart';
+import 'package:instagram_clone/ui/common_elements/img_picker/picker_gallery_page.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/common_elements/no_animation_material_page_route.dart';
-import 'package:instagram_clone/ui/common_elements/user_list_publications/user_publications_page.dart';
-import 'package:instagram_clone/ui/pages/edit_profile/edit_profile.dart';
 import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
-import 'package:instagram_clone/ui/pages/tab5_user/animated_drawer.dart';
+import 'package:instagram_clone/ui/common_elements/user_publications_page.dart';
+import 'package:instagram_clone/ui/pages/edit_profile/edit_profile.dart';
+import 'package:instagram_clone/ui/pages/tab5_user/header_user.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:instagram_clone/utils/utils.dart';
-import 'package:instagram_clone/utils/extensions.dart';
 
 class CurrentUserPage extends StatefulWidget {
   final Function() onDrawerIconTap;
-
 
   CurrentUserPage(this.onDrawerIconTap);
 
@@ -33,7 +32,6 @@ class _CurrentUserPageState extends State<CurrentUserPage>
   String _title;
   User _currentUser;
   List<Publication> _mentionsList = [];
-  int _posts = 0;
 
   @override
   void initState() {
@@ -82,6 +80,11 @@ class _CurrentUserPageState extends State<CurrentUserPage>
             widgets = [
               _headerCollapse(),
               _tabs(),
+              SliverToBoxAdapter(
+                  child: Container(
+                height: 1,
+                color: AppColors.grey1010,
+              )),
               _tabView(snapshot),
             ];
           }
@@ -118,7 +121,7 @@ class _CurrentUserPageState extends State<CurrentUserPage>
               Icons.add,
               color: Colors.black,
             ),
-            onPressed: null,
+            onPressed: () => _onAddPublicationTap(),
           ),
           IconButton(
             icon: Icon(
@@ -131,84 +134,14 @@ class _CurrentUserPageState extends State<CurrentUserPage>
       );
 
   Widget _headerCollapse() {
-    double fontSizeTop = 20;
-    double fontSizeBot = 16;
     return SliverToBoxAdapter(
       child: Container(
         padding: EdgeInsets.all(20),
-        alignment: Alignment.topLeft,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                CircleAvatar(
-                  backgroundColor: Colors.white,
-                  backgroundImage: Utils.getProfilePic(_currentUser.picture),
-                  radius: 50,
-                ),
-                Column(
-                  children: [
-                    Text(
-                      _posts.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: fontSizeTop),
-                    ),
-                    Text(
-                      AppStrings.posts,
-                      style: TextStyle(fontSize: fontSizeBot),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      _currentUser.followers.length.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: fontSizeTop),
-                    ),
-                    Text(
-                      AppStrings.followers,
-                      style: TextStyle(fontSize: fontSizeBot),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text(
-                      _currentUser.following.length.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold, fontSize: fontSizeTop),
-                    ),
-                    Text(
-                      AppStrings.following,
-                      style: TextStyle(fontSize: fontSizeBot),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            Padding(
-              padding: EdgeInsets.only(
-                top: 15,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _currentUser.name.capitalizeFirstLetterOfWords,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(_currentUser.bio),
-                ],
-              ),
-            ),
+            (_currentUser != null) ? HeaderUser(_currentUser) : LoadingWidget(),
             Container(
-              padding: EdgeInsets.only(top: 20, bottom: 15),
               width: double.infinity,
               child: OutlineButton(
                 borderSide: BorderSide(color: Colors.grey),
@@ -323,19 +256,17 @@ class _CurrentUserPageState extends State<CurrentUserPage>
   }
 
   Widget _emptyTabPublications() => Padding(
-        padding: EdgeInsets.only(left: 80, right: 80),
+        padding: const EdgeInsets.all(40),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: EdgeInsets.only(top: 10),
-              child: Text(
-                AppStrings.profile,
-                style: (TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                )),
-              ),
+            Text(
+              AppStrings.profile,
+              style: (TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 30,
+              )),
             ),
             Padding(
               padding: EdgeInsets.only(top: 20),
@@ -350,14 +281,17 @@ class _CurrentUserPageState extends State<CurrentUserPage>
             ),
             Padding(
               padding: EdgeInsets.only(top: 20),
-              child: Text(
-                AppStrings.emptyProfileShare,
-                textAlign: TextAlign.center,
-                style: (TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                )),
+              child: GestureDetector(
+                onTap: () => _onAddPublicationTap(),
+                child: Text(
+                  AppStrings.emptyProfileShare,
+                  textAlign: TextAlign.center,
+                  style: (TextStyle(
+                    color: Colors.blue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  )),
+                ),
               ),
             ),
           ],
@@ -365,20 +299,18 @@ class _CurrentUserPageState extends State<CurrentUserPage>
       );
 
   Widget _emptyTabMentions() => Padding(
-        padding: EdgeInsets.only(left: 80, right: 80),
+        padding: EdgeInsets.all(40),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Padding(
-              padding: EdgeInsets.only(top: 10),
-              child: Text(
-                AppStrings.mentions,
-                textAlign: TextAlign.center,
-                style: (TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30,
-                )),
-              ),
+            Text(
+              AppStrings.mentions,
+              textAlign: TextAlign.center,
+              style: (TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 30,
+              )),
             ),
             Padding(
               padding: EdgeInsets.only(top: 20),
@@ -408,7 +340,6 @@ class _CurrentUserPageState extends State<CurrentUserPage>
     // Publications of current user
     List<Publication> publicationsList =
         await PublicationServices.getPublicationsForUser(_currentUser.id);
-    _posts = publicationsList.length;
     // Publications where current user is mentioned
     for (String mentionStr in _currentUser.mentions)
       mentions.add(Utils.strToMention(mentionStr));
@@ -452,13 +383,21 @@ class _CurrentUserPageState extends State<CurrentUserPage>
   }
 
   _onPageChanged(int page) {
-    if (page != 4){ if (page ==2)  Navigator.of(context).push(NoAnimationMaterialPageRoute(
-      builder: (context) => PagesHolder(page,darkTheme: true),
-    ));
-    else
-      Navigator.of(context).push(NoAnimationMaterialPageRoute(
-        builder: (context) => PagesHolder(page, darkTheme: false),
-      ));
+    if (page != 4) {
+      if (page == 2)
+        Navigator.of(context).push(NoAnimationMaterialPageRoute(
+          builder: (context) => PagesHolder(page, darkTheme: true),
+        ));
+      else
+        Navigator.of(context).push(NoAnimationMaterialPageRoute(
+          builder: (context) => PagesHolder(page, darkTheme: false),
+        ));
     }
   }
+
+  _onAddPublicationTap() => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => PickerGalleryPage(),
+        ),
+      );
 }

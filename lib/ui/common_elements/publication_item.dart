@@ -4,8 +4,9 @@ import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/services/publication_services.dart';
 import 'package:instagram_clone/ui/common_elements/comments_page.dart';
+import 'package:instagram_clone/ui/common_elements/list_users/likes_page.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/content_slider.dart';
+import 'package:instagram_clone/ui/common_elements/content_slider.dart';
 import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/utils/extensions.dart';
 
@@ -89,7 +90,10 @@ class _PublicationItemState extends State<PublicationItem> {
 
   Widget _getContent(List<Content> contentList) {
     if (contentList.length > 1)
-      return ContentSlider(contentList);
+      return ContentSlider(
+        contentList: contentList,
+        isBytes: false,
+      );
     else if (contentList[0].isVideo)
       return VideoPlayerWidget(path: contentList[0].url, isFile: false);
     else
@@ -166,10 +170,13 @@ class _PublicationItemState extends State<PublicationItem> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_publication.likes.length > 0)
-            Text(
-              like,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () => _onLikesListTap(),
+              child: Text(
+                like,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           Row(
@@ -305,4 +312,10 @@ class _PublicationItemState extends State<PublicationItem> {
       );
     }));
   }
+
+  void _onLikesListTap() => Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => LikesPage(_publication.likes),
+        ),
+      );
 }

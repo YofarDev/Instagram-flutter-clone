@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
@@ -186,13 +185,19 @@ class _SearchOpenPageState extends State<SearchOpenPage>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     CircleAvatar(
-                      backgroundColor: Colors.white,
-                      backgroundImage: Utils.getProfilePic(user.picture),
+                      radius: 25,
+                      backgroundColor: AppColors.grey1010,
+                      child: CircleAvatar(
+                        radius: 24,
+                        backgroundColor: Colors.white,
+                        backgroundImage: Utils.getProfilePic(user.picture),
+                      ),
                     ),
                     Padding(
-                      padding: EdgeInsets.only(left: 20, top: 4),
+                      padding: EdgeInsets.only(left: 20, ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

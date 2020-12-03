@@ -3,18 +3,18 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:image/image.dart' as img;
 import 'package:image_crop/image_crop.dart';
 import 'package:instagram_clone/models/media_file.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/custom_crop.dart';
-import 'package:instagram_clone/ui/pages/tab1_home/img_picker/filter_selector_page.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
+import 'package:instagram_clone/ui/common_elements/img_picker/filter_selector_page.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
 
 class PickerGalleryPage extends StatefulWidget {
   _PickerGalleryPageState createState() => _PickerGalleryPageState();
@@ -22,6 +22,7 @@ class PickerGalleryPage extends StatefulWidget {
 
 class _PickerGalleryPageState extends State<PickerGalleryPage> {
   final ScrollController _scrollController = ScrollController();
+  final GlobalKey _globalKey = GlobalKey();
   Future<dynamic> _medias;
   List<MediaFile> _selectedMedias;
   MediaFile _mediaOnView;
@@ -67,13 +68,15 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     );
   }
 
+  /// *********** UI **********
+
   Widget _getWidgets(AsyncSnapshot snapshot) {
     return Column(
       children: <Widget>[
         _appBar(),
         _mediaView(),
-        _middleBar(snapshot),
-        _gridView(),
+        _foldersPicker(snapshot),
+        _thumbnailsGridView(),
       ],
     );
   }
@@ -111,21 +114,27 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                       ? VideoPlayerWidget(
                           path: _mediaOnView.path,
                           isFile: true,
+                          crop: true,
                         )
                       : AspectRatio(
                           aspectRatio: 1,
                           child: ClipRect(
-                            child: PhotoView(
-                              key: ValueKey(_mediaOnView),
-                              minScale: PhotoViewComputedScale.covered,
-                              maxScale: PhotoViewComputedScale.covered,
-                              controller: _photoViewController,
-                              backgroundDecoration: BoxDecoration(
-                                color: Colors.white,
-                              ),
-                              imageProvider: FileImage(
-                                File(
-                                  _mediaOnView.path,
+                            child: RepaintBoundary(
+                              key: _globalKey,
+                              child: PhotoView(
+                                key: ValueKey(_mediaOnView),
+                                onTapUp: (context, details, controllerValue) =>
+                                    print(_photoViewController.position),
+                                minScale: PhotoViewComputedScale.covered,
+                                maxScale: PhotoViewComputedScale.covered,
+                                controller: _photoViewController,
+                                backgroundDecoration: BoxDecoration(
+                                  color: Colors.white,
+                                ),
+                                imageProvider: FileImage(
+                                  File(
+                                    _mediaOnView.path,
+                                  ),
                                 ),
                               ),
                             ),
@@ -133,7 +142,7 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                         )
                   : Container()),
 
-          /// Icon multiple mode
+          // Icon multiple mode
           Container(
               padding: EdgeInsets.only(bottom: 20, right: 20),
               height: MediaQuery.of(context).size.width,
@@ -155,7 +164,7 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
         ],
       );
 
-  Widget _middleBar(AsyncSnapshot snapshot) => Row(
+  Widget _foldersPicker(AsyncSnapshot snapshot) => Row(
         children: [
           Container(
               padding: EdgeInsets.only(left: 15),
@@ -175,7 +184,7 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
         ],
       );
 
-  Widget _gridView() => _folderFiles.isEmpty
+  Widget _thumbnailsGridView() => _folderFiles.isEmpty
       ? Container()
       : Expanded(
           child: GridView.builder(
@@ -205,7 +214,6 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
                 ),
                 onTap: () => _onThumbnailTap(i),
                 onLongPress: () => _onThumbnailLongPress(i),
-                onDoubleTap: () => _onThumbnailDoubleTap(i),
               );
             },
             itemCount: _folderFiles.length,
@@ -248,8 +256,7 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
       right: 0.0,
       width: 36.0,
       height: 36.0,
-      child: GestureDetector(
-        onTap: () => _onBadgeThumbnailTap(current),
+      child: IgnorePointer(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Container(
@@ -273,9 +280,27 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     );
   }
 
+  List<DropdownMenuItem> _getDropdownItems(List<AssetPathEntity> list) =>
+      list.map((e) {
+        return DropdownMenuItem(
+          value: e,
+          child: Text(
+            e.name,
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        );
+      }).toList() ??
+      [];
+
+  /// *********** DATA **********
+
   Future<List<AssetPathEntity>> _getMediasList() async {
     var result = await PhotoManager.requestPermission();
     if (result)
+      // Return list of photos/videos by folders
       return await PhotoManager.getAssetPathList().then((value) {
         if (value.isNotEmpty) {
           _selectedFolder = value[0];
@@ -286,22 +311,6 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
       });
     else
       return null;
-  }
-
-  List<DropdownMenuItem> _getDropdownItems(List<AssetPathEntity> list) {
-    return list.map((e) {
-          return DropdownMenuItem(
-            value: e,
-            child: Text(
-              e.name,
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          );
-        }).toList() ??
-        [];
   }
 
   void _setSelectedFolder(AssetPathEntity folder) async {
@@ -317,9 +326,7 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     List<AssetEntity> children =
         await folder.getAssetListRange(start: range, end: range + 36);
     List<MediaFile> files = [];
-
     children.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-
     for (AssetEntity entity in children) {
       File file = await entity.file;
       Uint8List thumb = await entity.thumbDataWithSize(150, 150);
@@ -331,62 +338,9 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
         thumb: thumb,
         isVideo: isVideo,
         duration: duration,
-        width: entity.width,
-        height: entity.width,
       ));
     }
     return files;
-  }
-
-  void _loadMore() async {
-    int range = _folderFiles.length;
-    List<MediaFile> files = await _loadData(_selectedFolder, range);
-    setState(() {
-      _folderFiles.addAll(files);
-    });
-  }
-
-  Content _convertToContent(File file) {
-    return Content(false, file.path, 1);
-  }
-
-  Future<File> _getResizedImage(MediaFile media) async {
-    var rect = Rect.fromCenter(
-        center: media.offset,
-        width: media.width.toDouble(),
-        height: media.height.toDouble());
-
-    final sampledFile = await ImageCrop.sampleImage(
-      file: File(media.path),
-      preferredSize: (1200 / media.scale).round(),
-    );
-
-    final croppedFile = await ImageCrop.cropImage(
-      file: sampledFile,
-      area: rect,
-    );
-
-    return await ImageCrop.cropImage(
-        file: croppedFile, area: rect, scale: media.scale);
-  }
-
-  void _scrollListener() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) _loadMore();
-  }
-
-  // 2 ways of switching multiple mode ON/OFF :
-  // - The icon bottom right of the photo view
-  // - Long press on a thumbnail
-  void _setMultipleMode() {
-    setState(() {
-      _multipleMode = !_multipleMode;
-      // Add the media on photo view when multiple mode is switch ON
-      if (_multipleMode)
-        _selectedMedias.add(_mediaOnView);
-      else
-        _selectedMedias = [];
-    });
   }
 
   // To add or remove an item of the selected medias (10 max)
@@ -403,69 +357,112 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
   }
 
   void _setThumbnailAsView(int i) {
-    _savePosition();
-    _photoViewController.reset();
-    // If it's a click on the thumbnail we were already,
-    // and multiple mode is ON, we add/remove it
-    if (_selected == i && _multipleMode)
-      _updateMediasSelectedList(_mediaOnView);
-
-    // Else we update the photo view and load saved position if there is one
+    if (_multipleMode) {
+      _savePosition();
+      // If it's a click on the thumbnail we were already,
+      // We add or remove it
+      if (_selected == i)
+        _updateMediasSelectedList(_mediaOnView);
+      // If the selected list doesn't contain it and is not full, we add it
+      else if (!_selectedMedias.contains(_folderFiles[i]) &&
+          (_selectedMedias.length < 10)) _selectedMedias.add(_folderFiles[i]);
+    }
+    // We could also  _photoViewController.reset(), I don't know which one is better
+    _photoViewController = PhotoViewController();
     setState(() {
+      // Set the new view
       _mediaOnView = _folderFiles[i];
       _selected = i;
-      if (_mediaOnView.offset != null)
-        _photoViewController.position = _mediaOnView.offset;
+      // To put back the saved position on view [MULTIPLE ON]
+      // (don't work without the delay, can't really figure out why)
+      if (_multipleMode && _mediaOnView.position != null)
+        Future.delayed(Duration(milliseconds: 50)).then(
+            (value) => _photoViewController.position = _mediaOnView.position);
     });
   }
 
-  // If the media displaying in photo view is
-  // in the list of selected medias, we save its position
-  void _savePosition() {
-    if (_multipleMode && _selectedMedias.contains(_mediaOnView)) {
-      _mediaOnView.offset = _photoViewController.position;
-      _mediaOnView.scale = _photoViewController.scale;
-    }
+  void _loadMore() async {
+    int range = _folderFiles.length;
+    List<MediaFile> files = await _loadData(_selectedFolder, range);
+    setState(() {
+      _folderFiles.addAll(files);
+    });
   }
 
-  /// MULTIPLE MODE & STUFF LISTENERS
+  Content _convertToContent(File file) {
+    return Content(false, file.path, 1);
+  }
+
+  // 2 ways of switching multiple mode ON/OFF :
+  // - The icon bottom right of the photo view
+  // - Long press on a thumbnail
+  void _setMultipleMode() {
+    setState(() {
+      _multipleMode = !_multipleMode;
+      // Add the media on photo view when multiple mode is switch ON
+      if (_multipleMode) {
+        _selectedMedias = [];
+        _selectedMedias.add(_mediaOnView);
+      } else
+        _selectedMedias = [];
+    });
+  }
+
+  // If the media displaying in media view is
+  // in the list of selected medias, we save its position
+  Future<void> _savePosition() async {
+    _mediaOnView.position = _photoViewController.position;
+    var repaintBoundary = _globalKey.currentContext.findRenderObject();
+    _mediaOnView.bytes = await _cropView(repaintBoundary);
+  }
+
+  Future<Uint8List> _cropView(var repaintBoundary) async {
+    ui.Image boxImage = await repaintBoundary.toImage(pixelRatio: 1.0);
+    ByteData byteData =
+        await boxImage.toByteData(format: ui.ImageByteFormat.png);
+    return byteData.buffer.asUint8List();
+  }
+
+  /// LISTENERS
 
   void _onIconMultipleTap() => _setMultipleMode();
 
   void _onThumbnailTap(int i) => _setThumbnailAsView(i);
 
-  void _onThumbnailDoubleTap(int i) {
-    // If multiple mode is ON, we add/remove the media
-    if (_multipleMode) _updateMediasSelectedList(_folderFiles[i]);
-    // If it was not already on view, we update it
-    if (_folderFiles[i] != _mediaOnView) _setThumbnailAsView(i);
-  }
+  // void _onThumbnailDoubleTap(int i) {
+  //   // If multiple mode is ON, we add/remove the media
+  //   if (_multipleMode) _updateMediasSelectedList(_folderFiles[i]);
+  //   // If it was not already on view, we update it
+  //   if (_folderFiles[i] != _mediaOnView) _setThumbnailAsView(i);
+  // }
 
   void _onThumbnailLongPress(int i) {
     _setThumbnailAsView(i);
     _setMultipleMode();
   }
 
-  void _onBadgeThumbnailTap(MediaFile current) =>
-      _updateMediasSelectedList(current);
+  //void _onBadgeThumbnailTap(MediaFile current) {}
 
-  //ToDo : add videos
   void _onNextPageTap() async {
-    List<Content> medias = [];
-    _mediaOnView.scale = _photoViewController.scale;
-    _mediaOnView.offset = _photoViewController.position;
-    if (!_multipleMode) _selectedMedias.add(_mediaOnView);
-
-    for (MediaFile media in _selectedMedias)
-      medias.add(_convertToContent(await _getResizedImage(media)));
-
-    // Send the list to the next page
+    //ToDo : add videos
+    if (!_multipleMode) {
+      _selectedMedias = [];
+      var repaintBoundary = _globalKey.currentContext.findRenderObject();
+      _mediaOnView.bytes = await _cropView(repaintBoundary);
+      _selectedMedias.add(_mediaOnView);
+    }
+    // // Send the list to the next page
     Navigator.push(
         context,
         new MaterialPageRoute(
           builder: (context) => FilterSelectorPage(
-            medias: medias,
+            medias: _selectedMedias,
           ),
         ));
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels ==
+        _scrollController.position.maxScrollExtent) _loadMore();
   }
 }

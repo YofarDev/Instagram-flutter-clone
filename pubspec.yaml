@@ -30,7 +30,6 @@ dependencies:
   flutter_signin_button:
   firebase_core:
   cloud_firestore:
-  firebase_storage:
   carousel_slider:
   video_player: 
   location:
@@ -50,6 +49,7 @@ dependencies:
   shared_preferences:
   path_provider:
   intl:
+  photofilters:
 
 
 

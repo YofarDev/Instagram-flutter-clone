@@ -227,7 +227,7 @@ class _RegisterPageState extends State<RegisterPage> {
             email: _emailController.text.trim(),
             password: _passwordController.text.trim(),
             username: _usernameController.text.trim(),
-            key: scaffoldKey,
+            context: context,
           );
 
       Navigator.of(context).pop(_image);
