@@ -4,12 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/media_services.dart';
-import 'package:instagram_clone/services/publication_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
-import 'package:instagram_clone/ui/common_elements/img_picker/medias_view_page.dart';
-import 'package:instagram_clone/ui/pages_holder.dart';
-import 'package:instagram_clone/utils/utils.dart';
+import 'package:instagram_clone/ui/common_elements/add_publication/medias_view_page.dart';
+import 'package:instagram_clone/ui/common_elements/add_publication/tag_people_page.dart';
 
 class PublicationInfoPage extends StatefulWidget {
   final List<Uint8List> medias;
@@ -22,11 +18,14 @@ class PublicationInfoPage extends StatefulWidget {
 
 class _PublicationInfoPageState extends State<PublicationInfoPage> {
   TextEditingController _textController;
+  List<Content> _mediasContent;
+  String _tag;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController();
+    _mediasContent = _getContent();
   }
 
   @override
@@ -36,6 +35,19 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
       body: ListView(
         children: [
           _captionField(),
+          _separator(),
+          _getField(
+            hint: AppStrings.tagPeople,
+            page: TagPeoplePage(_mediasContent),
+            index: 0,
+            suffix: _tag,
+          ),
+          _separator(),
+          _getField(
+            hint: AppStrings.addLocation,
+            page: Container(),
+            index: 1,
+          ),
           _separator(),
         ],
       ),
@@ -105,42 +117,89 @@ class _PublicationInfoPageState extends State<PublicationInfoPage> {
         ),
       );
 
+  Widget _getField({String hint, Widget page, int index, String suffix}) =>
+      GestureDetector(
+        onTap: () => _onFieldTap(page, index),
+        child: TextField(
+          enabled: false,
+          decoration: InputDecoration(
+              hintText: hint,
+              contentPadding: EdgeInsets.all(20),
+              border: InputBorder.none,
+              hintStyle: TextStyle(
+                color: Colors.black,
+              ),
+              suffixIcon: (suffix != null)
+                  ? Padding(
+                      padding: const EdgeInsets.only(right: 20),
+                      child: SizedBox(
+                        width: 80,
+                        child: Center(
+                          child: Text(
+                            suffix,
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  : null),
+        ),
+      );
+
   Widget _separator() => Container(
         height: 1,
         color: AppColors.grey1010,
       );
 
-  void _addNewPublication() async {
-    List<Content> content = [];
-    for (Uint8List media in widget.medias)
-      content.add(
-        Content(
-          false,
-          await MediaServices.uploadImage(media, UserServices.currentUserId),
-          1,
-        ),
-      );
+  void _onFieldTap(Widget page, int index) {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (context) => page,
+          ),
+        )
+        .then((value) => _handleResults(index, value));
+  }
 
-    bool uploaded = true;
-    for (Content c in content) if (c.url.isEmpty) uploaded = false;
+  void _addNewPublication() async {}
 
-    if (uploaded) {
-      List<String> contentStr = [];
-      for (Content c in content) contentStr.add(Utils.itemContentToStr(c));
+  List<Content> _getContent() =>
+      widget.medias.map((e) => Content(bytes: e, mentions: [])).toList();
 
-      Publication newPublication = Publication.newPublication(
-        userId: UserServices.currentUserId,
-        date: DateTime.now().toString(),
-        legend: _textController.text,
-        content: contentStr,
-      );
+  void _handleResults(int index, var value) {
+    switch (index) {
+      case 0:
+        {
+          if (value != null) {
+            _mediasContent = value;
+            setState(() {
+              _tag = _getTagStr();
+            });
+          }
+        }
+        break;
+      default:
+        {}
+    }
+  }
 
-      await PublicationServices.addPublication(newPublication);
-      // To remove all route and reload PagesHolder()
-      Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => PagesHolder(0, darkTheme: false)),
-          (Route<dynamic> route) => false);
-    } else
-      print("error uploading");
+  String _getTagStr() {
+    List<String> mentions = [];
+
+    for (Content c in _mediasContent)
+      mentions.addAll(c.mentions.map((e) => e.username).toList());
+
+    Set<String> mentionsUnique = mentions.toSet();
+    int count = mentionsUnique.length;
+
+    if (count == 0)
+      return null;
+    else if (count == 1)
+      return "@${mentionsUnique.first}";
+    else
+      return "$count ${AppStrings.people}";
   }
 }

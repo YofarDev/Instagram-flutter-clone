@@ -11,9 +11,17 @@ class ContentSlider extends StatefulWidget {
   final bool isBytes;
   final showDots;
   final Function(int) onMediaChanged;
+  final int initialPage;
+  final CarouselController controller;
 
   ContentSlider(
-      {this.contentList, this.contentBytesList, this.isBytes, this.showDots, this.onMediaChanged});
+      {this.contentList,
+      this.contentBytesList,
+      this.isBytes,
+      this.showDots,
+      this.onMediaChanged,
+      this.initialPage,
+      this.controller});
 
   _ContentSliderState createState() => _ContentSliderState();
 }
@@ -31,12 +39,16 @@ class _ContentSliderState extends State<ContentSlider> {
       child: Column(children: [
         CarouselSlider(
           items: content,
+          carouselController: (widget.controller != null)
+              ? widget.controller
+              : CarouselController(),
           options: CarouselOptions(
               aspectRatio: 1,
               viewportFraction: 1.0,
               scrollPhysics: PageScrollPhysics(),
               pageSnapping: false,
               disableCenter: true,
+              initialPage: (widget.initialPage) ?? 0,
               enableInfiniteScroll: false,
               onPageChanged: (index, reason) {
                 setState(() {

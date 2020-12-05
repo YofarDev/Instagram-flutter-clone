@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/list_users/users_list.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
+import 'package:instagram_clone/utils/utils.dart';
 
 class LikesPage extends StatefulWidget {
   // List of string id of the users who have liked
@@ -45,8 +46,11 @@ class _LikesPageState extends State<LikesPage> {
         body: (_isLoading)
             ? LoadingWidget()
             : UsersList(
-                current: _current,
+                currentUserId: _current.id,
                 list: _users,
+          followButton: true,
+          onUserTap: (user) => Utils.navToUserDetails(context, user),
+          
               ),
       ),
     );

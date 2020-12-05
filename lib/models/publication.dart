@@ -47,10 +47,17 @@ class Publication {
 }
 
 class Content {
-  bool isVideo;
   String url;
-  double aspectRatio;
+  bool isVideo;
+  double aspectRatio = 1;
+  List<User> mentions = [];
+  Uint8List bytes;
 
-  Content(this.isVideo, this.url, this.aspectRatio);
+  Content({
+    this.url,
+    this.isVideo,
+    this.aspectRatio,
+    this.mentions,
+    this.bytes
+  });
 }
-

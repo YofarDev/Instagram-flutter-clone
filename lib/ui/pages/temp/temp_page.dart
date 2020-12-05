@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' as fb;
 import 'package:flutter/material.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/animated_drawer.dart';
 import 'package:instagram_clone/ui/pages/temp/switch_test.dart';
 import 'package:pop_bottom_menu/pop_bottom_menu.dart';

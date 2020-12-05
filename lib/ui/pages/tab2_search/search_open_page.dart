@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
+import 'package:instagram_clone/ui/common_elements/list_users/users_list.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/pages/tab2_search/debouncer.dart';
 import 'package:instagram_clone/utils/utils.dart';
@@ -38,7 +39,6 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     _searchOutput = [];
     _isSearching = false;
     _recentList = _getRecentList();
-
   }
 
   @override
@@ -123,16 +123,20 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         )
       ];
 
-  Widget _searchOutputWidget() => (_searchOutput.isEmpty)
-      ? (_isSearching)
-          ? _noResult()
-          : _recent()
-      : ListView.builder(
-          itemCount: _searchOutput.length,
-          itemBuilder: (context, index) {
-            return _itemUser(_searchOutput[index]);
-          },
-        );
+  Widget _searchOutputWidget() {
+    if (!_isSearching)
+      return _recent();
+    else if (_searchOutput.isEmpty)
+      return _noResult();
+    else
+      return UsersList(
+        list: _searchOutput,
+        currentUserId: UserServices.currentUserId,
+        secondLine: true,
+        onUserTap: _onUserTap,
+        removeButton: false,
+      );
+  }
 
   Widget _noResult() => Padding(
         padding: const EdgeInsets.all(20),
@@ -150,83 +154,34 @@ class _SearchOpenPageState extends State<SearchOpenPage>
         builder: (context, snapshot) {
           Widget widget;
           if (snapshot.hasData)
-            widget = Expanded(
-              child: ListView.builder(
-                itemCount: snapshot.data.length,
-                itemBuilder: (context, index) {
-                  return _itemUser(snapshot.data[index]);
-                },
-              ),
+            widget = UsersList(
+              list: snapshot.data,
+              currentUserId: UserServices.currentUserId,
+              removeButton: true,
+              onUserTap: _onUserTap,
+              onRemoveTap: (user)=>_removeRecentUser(user),
+              secondLine: true,
             );
           else
             widget = LoadingWidget();
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Text(AppStrings.recent,
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-              ),
-              widget,
-            ],
+          return Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppStrings.recent,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Expanded(child: widget),
+              ],
+            ),
           );
         },
       );
-
-  Widget _itemUser(User user) => Padding(
-    padding: const EdgeInsets.all(20),
-    child: GestureDetector(
-      onTap: () => _onUserClick(user),
-      child: Container(
-        color: Colors.white,
-        child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    CircleAvatar(
-                      radius: 25,
-                      backgroundColor: AppColors.grey1010,
-                      child: CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.white,
-                        backgroundImage: Utils.getProfilePic(user.picture),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.only(left: 20, ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.username,
-                          ),
-                          Text(_getTextInfo(user),
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey))
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                (!_isSearching)
-                    ? GestureDetector(
-                        onTap: () => _removeRecentUser(user),
-                        child: Icon(
-                          Icons.close,
-                          size: 15,
-                        ),
-                      )
-                    : Container(),
-              ],
-            ),
-      ),
-    ),
-  );
 
   String _getHint() {
     switch (_tabSelected) {
@@ -253,35 +208,28 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     setState(() {
       _isSearching = _textEditingController.text.isNotEmpty;
     });
-    _debouncer.call(() {
-      String input = _textEditingController.text;
-      if (_users != null)
-        setState(() {
-          _searchOutput = _users
-              .where((User user) =>
-                  user.name.contains(input) || user.username.contains(input))
-              .toList();
-        });
-    });
+    if (_isSearching) {
+      _debouncer.call(() {
+        String input = _textEditingController.text;
+        if (_users != null)
+          setState(() {
+            _searchOutput = _users
+                .where((User user) =>
+                    user.name.contains(input) || user.username.contains(input))
+                .toList();
+          });
+      });
+    }
   }
 
-  String _getTextInfo(User user) {
-    String str = user.name;
-    if (_isFollowedByCurrentUser(user)) str += " - ${AppStrings.following}";
-    return str;
-  }
-
-  bool _isFollowedByCurrentUser(User user) =>
-      user.followers.contains(UserServices.currentUserId);
-
-  void _onUserClick(User user) async {
+  void _onUserTap(User user) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var list = prefs.getStringList(sharedKey) ?? [];
     if (list.contains(user.id)) list.remove(user.id);
     list.insert(0, user.id);
     if (list.length > 10) list = list.getRange(0, 9);
     prefs.setStringList(sharedKey, list);
-    Utils.navToUserDetails(context, user);
+    Utils.navToUserDetails(context, user).then((value) => _updateRecentList());
   }
 
   Future<List<User>> _getRecentList() async {
@@ -298,6 +246,10 @@ class _SearchOpenPageState extends State<SearchOpenPage>
     list.remove(user.id);
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setStringList(sharedKey, list);
+    _updateRecentList();
+  }
+
+  void _updateRecentList() async {
     setState(() {
       _recentList = _getRecentList();
     });

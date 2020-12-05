@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/animated_drawer.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/current_user_page.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/user_page.dart';

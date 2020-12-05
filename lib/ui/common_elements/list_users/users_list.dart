@@ -1,17 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
+import 'package:instagram_clone/res/strings.dart';
 import 'package:instagram_clone/utils/extensions.dart';
 import 'package:instagram_clone/utils/utils.dart';
 
 import '../follow_button.dart';
 
 class UsersList extends StatefulWidget {
-  final User current;
   final List<User> list;
+  final String currentUserId;
+  final Function(User) onUserTap;
+  final Function(User) onRemoveTap;
+  final bool followButton;
+  final bool removeButton;
+  final bool secondLine;
 
   UsersList({
-    @required this.current,
     @required this.list,
+    @required this.currentUserId,
+    this.onUserTap,
+    this.onRemoveTap,
+    this.followButton,
+    this.removeButton,
+    this.secondLine,
   });
 
   @override
@@ -20,22 +31,24 @@ class UsersList extends StatefulWidget {
 
 class _UsersListState extends State<UsersList> {
   List<User> _users;
-  User _current;
+  String _currentUserId;
+  bool _followButton;
+  bool _removeButton;
+  bool _secondLine;
 
   @override
   void initState() {
     super.initState();
-    _current = widget.current;
+    _currentUserId = widget.currentUserId;
     _users = widget.list;
+    _followButton = widget.followButton ?? false;
+    _removeButton = widget.removeButton ?? false;
+    _secondLine = widget.secondLine ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: _buildList(_users),
-      ),
-    );
+    return _buildList(_users);
   }
 
   Widget _buildList(List<User> users) => ListView.builder(
@@ -48,7 +61,7 @@ class _UsersListState extends State<UsersList> {
   Widget _buildItem(User user) => Padding(
         padding: const EdgeInsets.all(20),
         child: GestureDetector(
-          onTap: () => Utils.navToUserDetails(context, user),
+          onTap: ()=> widget.onUserTap(user),
           child: Container(
             color: Colors.white,
             child: Row(
@@ -77,7 +90,10 @@ class _UsersListState extends State<UsersList> {
                           Text(
                             user.username,
                           ),
-                          Text(user.name.capitalizeFirstLetterOfWords,
+                          Text(
+                              _secondLine
+                                  ? _getTextInfo(user)
+                                  : user.name.capitalizeFirstLetterOfWords,
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.grey))
@@ -86,7 +102,7 @@ class _UsersListState extends State<UsersList> {
                     ),
                   ],
                 ),
-                (_current != null && user.id != _current.id)
+                (user.id != _currentUserId && _followButton)
                     ? Container(
                         width: 150,
                         child: FollowButton(
@@ -97,20 +113,35 @@ class _UsersListState extends State<UsersList> {
                         ),
                       )
                     : Container(),
+                (_removeButton) ? _removeButtonWidget(user) : Container(),
               ],
             ),
           ),
         ),
       );
 
+  Widget _removeButtonWidget(User user) => GestureDetector(
+        onTap: () => widget.onRemoveTap(user),
+        child: Icon(
+          Icons.close,
+          size: 15,
+        ),
+      );
+
   ///*** DATA ***///
   bool _isFollowedByCurrentUser(User user) =>
-      _current.following.contains(user.id);
+    user.followers.contains(_currentUserId);
 
-  void _onFollowStateChanged(bool isFollowed, String id) {
+  void _onFollowStateChanged(bool isFollowed, User user) {
     if (isFollowed)
-      _current.following.add(id);
+      user.followers.add(_currentUserId);
     else
-      _current.following.remove(id);
+      user.followers.remove(_currentUserId);
+  }
+
+  String _getTextInfo(User user) {
+    String str = user.name;
+    if (_isFollowedByCurrentUser(user)) str += " - ${AppStrings.following}";
+    return str;
   }
 }

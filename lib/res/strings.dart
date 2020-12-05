@@ -113,8 +113,8 @@ class AppStrings {
   static final String emptyMessageBody =
       "Send private messages or share your favorite posts directly with friends.";
 
-static final String today = "Today";
-
-
-
+  static final String today = "Today";
+  static final String tagPeople = "Tag people";
+  static final String addLocation = "Add Location";
+  static final String people = "People";
 }

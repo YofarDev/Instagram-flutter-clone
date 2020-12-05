@@ -5,8 +5,8 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/comment_service.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/comment_service.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/utils/utils.dart';
 

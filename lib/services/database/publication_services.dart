@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/models/publication.dart';
 
 class PublicationServices {

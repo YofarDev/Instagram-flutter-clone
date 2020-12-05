@@ -24,6 +24,7 @@ class _MediasViewPageState extends State<MediasViewPage> {
           items: _items(),
           options: CarouselOptions(
             viewportFraction: 1.0,
+            scrollPhysics: PageScrollPhysics(),
             pageSnapping: false,
             enableInfiniteScroll: false,
             disableCenter: true,

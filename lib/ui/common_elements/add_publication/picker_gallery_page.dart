@@ -1,20 +1,19 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:image_crop/image_crop.dart';
+import 'package:flutter/rendering.dart';
 import 'package:instagram_clone/models/media_file.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
+import 'package:instagram_clone/services/medias_manipulation/image_manipulation.dart';
+import 'package:instagram_clone/services/medias_manipulation/media_files_folders.dart';
+import 'package:instagram_clone/ui/common_elements/add_publication/filter_selector_page.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';
-import 'package:instagram_clone/ui/common_elements/img_picker/filter_selector_page.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:photo_view/photo_view.dart';
-import 'dart:ui' as ui;
-import 'package:flutter/rendering.dart';
 
 class PickerGalleryPage extends StatefulWidget {
   _PickerGalleryPageState createState() => _PickerGalleryPageState();
@@ -297,11 +296,8 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
 
   /// *********** DATA **********
 
-  Future<List<AssetPathEntity>> _getMediasList() async {
-    var result = await PhotoManager.requestPermission();
-    if (result)
-      // Return list of photos/videos by folders
-      return await PhotoManager.getAssetPathList().then((value) {
+  Future<List<AssetPathEntity>> _getMediasList() async =>
+      await MediaFilesFolders.getMediasList().then((value) {
         if (value.isNotEmpty) {
           _selectedFolder = value[0];
           _setSelectedFolder(value[0]);
@@ -309,50 +305,14 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
         } else
           return [];
       });
-    else
-      return null;
-  }
 
   void _setSelectedFolder(AssetPathEntity folder) async {
-    List<MediaFile> files = await _loadData(folder, 0);
+    List<MediaFile> files =
+        await MediaFilesFolders.loadMediasFromFolder(folder, 0);
     setState(() {
       _folderFiles = files;
       _mediaOnView = _folderFiles[0];
       _selected = 0;
-    });
-  }
-
-  Future<List<MediaFile>> _loadData(AssetPathEntity folder, int range) async {
-    List<AssetEntity> children =
-        await folder.getAssetListRange(start: range, end: range + 36);
-    List<MediaFile> files = [];
-    children.sort((a, b) => b.createDateTime.compareTo(a.createDateTime));
-    for (AssetEntity entity in children) {
-      File file = await entity.file;
-      Uint8List thumb = await entity.thumbDataWithSize(150, 150);
-      bool isVideo = (entity.typeInt == 2);
-      int duration;
-      if (isVideo) duration = entity.duration;
-      files.add(MediaFile(
-        path: file.path,
-        thumb: thumb,
-        isVideo: isVideo,
-        duration: duration,
-      ));
-    }
-    return files;
-  }
-
-  // To add or remove an item of the selected medias (10 max)
-  void _updateMediasSelectedList(MediaFile current) {
-    bool isSelected = _selectedMedias.contains(current);
-    setState(() {
-      if (_selectedMedias.length < 10 && !isSelected) {
-        _selectedMedias.add(current);
-      }
-      if (isSelected) _selectedMedias.remove(current);
-      // If we remove the last item of the selection, switch off the multiple mode
-      if (_selectedMedias.length == 0) _multipleMode = false;
     });
   }
 
@@ -381,16 +341,29 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     });
   }
 
-  void _loadMore() async {
-    int range = _folderFiles.length;
-    List<MediaFile> files = await _loadData(_selectedFolder, range);
+  // To add or remove an item of the selected medias (10 max)
+  void _updateMediasSelectedList(MediaFile current) {
+    bool isSelected = _selectedMedias.contains(current);
     setState(() {
-      _folderFiles.addAll(files);
+      if (_selectedMedias.length < 10 && !isSelected) {
+        _selectedMedias.add(current);
+      }
+      if (isSelected) {
+        _deletePosition(current);
+        _selectedMedias.remove(current);
+      }
+      // If we remove the last item of the selection, switch off the multiple mode
+      if (_selectedMedias.length == 0) _multipleMode = false;
     });
   }
 
-  Content _convertToContent(File file) {
-    return Content(false, file.path, 1);
+  void _loadMore() async {
+    int range = _folderFiles.length;
+    List<MediaFile> files =
+        await MediaFilesFolders.loadMediasFromFolder(_selectedFolder, range);
+    setState(() {
+      _folderFiles.addAll(files);
+    });
   }
 
   // 2 ways of switching multiple mode ON/OFF :
@@ -403,8 +376,10 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
       if (_multipleMode) {
         _selectedMedias = [];
         _selectedMedias.add(_mediaOnView);
-      } else
+      } else {
+        for (MediaFile media in _selectedMedias) _deletePosition(media);
         _selectedMedias = [];
+      }
     });
   }
 
@@ -413,15 +388,11 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
   Future<void> _savePosition() async {
     _mediaOnView.position = _photoViewController.position;
     var repaintBoundary = _globalKey.currentContext.findRenderObject();
-    _mediaOnView.bytes = await _cropView(repaintBoundary);
+    _mediaOnView.bytes = await ImageManipulation.getViewAsBytes(
+        repaintBoundary: repaintBoundary);
   }
 
-  Future<Uint8List> _cropView(var repaintBoundary) async {
-    ui.Image boxImage = await repaintBoundary.toImage(pixelRatio: 1.0);
-    ByteData byteData =
-        await boxImage.toByteData(format: ui.ImageByteFormat.png);
-    return byteData.buffer.asUint8List();
-  }
+  void _deletePosition(MediaFile media) => media.bytes = null;
 
   /// LISTENERS
 
@@ -447,11 +418,19 @@ class _PickerGalleryPageState extends State<PickerGalleryPage> {
     //ToDo : add videos
     if (!_multipleMode) {
       _selectedMedias = [];
-      var repaintBoundary = _globalKey.currentContext.findRenderObject();
-      _mediaOnView.bytes = await _cropView(repaintBoundary);
+      _mediaOnView.bytes = await ImageManipulation.getViewAsBytes(
+          repaintBoundary: _globalKey.currentContext.findRenderObject());
       _selectedMedias.add(_mediaOnView);
+    } else {
+      _selectedMedias
+              .where((element) => element == _mediaOnView)
+              .toList()
+              .last
+              .bytes =
+          await ImageManipulation.getViewAsBytes(
+              repaintBoundary: _globalKey.currentContext.findRenderObject());
     }
-    // // Send the list to the next page
+    // Send the list to the next page
     Navigator.push(
         context,
         new MaterialPageRoute(

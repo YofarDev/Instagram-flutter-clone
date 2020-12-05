@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/pages/tab5_user/user_holder.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -16,9 +16,9 @@ class Utils {
     List<String> list = c.replaceAll(' ', '').split('||');
     bool b = list[0] == 'true' ? true : false;
     return (Content(
-      b,
-      list[1],
-      double.parse(
+      isVideo: b,
+      url: list[1],
+      aspectRatio: double.parse(
         list[2],
       ),
     ));
@@ -51,7 +51,7 @@ class Utils {
       : AssetImage("assets/images/default-profile.png");
 
   static navToUserDetails(BuildContext context, User user) =>
-      Navigator.of(context).push(MaterialPageRoute(
+     Navigator.of(context).push(MaterialPageRoute(
         builder: (context) => (user.id != UserServices.currentUserId)
             ? PagesHolder(4, user: user)
             : UserHolder(

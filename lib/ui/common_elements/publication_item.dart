@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/publication_services.dart';
+import 'package:instagram_clone/services/database/publication_services.dart';
 import 'package:instagram_clone/ui/common_elements/comments_page.dart';
 import 'package:instagram_clone/ui/common_elements/list_users/likes_page.dart';
 import 'package:instagram_clone/ui/common_elements/video_player.dart';

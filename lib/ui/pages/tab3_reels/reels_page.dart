@@ -43,7 +43,7 @@ class _ReelsPageState extends State<ReelsPage> {
       });
 
   double _getAspectRatio() =>
-  // MediaQuery.of(context).size.aspectRatio;
+      // MediaQuery.of(context).size.aspectRatio;
       MediaQuery.of(context).size.width /
       (MediaQuery.of(context).size.height -
           Constants.BOTTOM_BAR_HEIGHT -
@@ -52,9 +52,9 @@ class _ReelsPageState extends State<ReelsPage> {
   List<Content> _getContentList() => _videoSamples()
       .map(
         (e) => Content(
-          true,
-          e,
-          _getAspectRatio(),
+          isVideo: true,
+          url: e,
+          aspectRatio: _getAspectRatio(),
         ),
       )
       .toList();

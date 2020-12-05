@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:instagram_clone/res/constants.dart';
-import 'package:instagram_clone/services/authentification_services.dart';
+import 'package:instagram_clone/services/database/authentication_services.dart';
 import 'package:instagram_clone/ui/pages/login/login_page.dart';
 import 'package:instagram_clone/ui/pages_holder.dart';
 import 'package:provider/provider.dart';

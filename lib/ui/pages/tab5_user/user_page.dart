@@ -3,8 +3,8 @@ import 'package:instagram_clone/models/publication.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/publication_services.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/publication_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/follow_button.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
 import 'package:instagram_clone/ui/common_elements/persistent_header.dart';
@@ -148,7 +148,7 @@ class _UserPageState extends State<UserPage>
                 following: _followed,
                 showMenu: true,
                 user: _userDetails,
-                onStateChanged: (bool state, String id) =>
+                onStateChanged: (bool state, _) =>
                     _onFollowButtonTap(state),
               ),
             ),

@@ -1,5 +1,5 @@
 import 'package:instagram_clone/models/conversation.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 
 extension CapExtension on String {
   String get capitalizeFirstLetter => '${this[0].toUpperCase()}${this.substring(1)}';

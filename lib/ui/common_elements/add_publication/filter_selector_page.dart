@@ -1,16 +1,15 @@
-import 'dart:io';
 import 'dart:typed_data';
-import 'dart:ui' as ui;
-import 'package:image/image.dart' as img;
 
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
+import 'package:image/image.dart' as img;
 import 'package:instagram_clone/models/media_file.dart';
 import 'package:instagram_clone/res/color_filters.dart';
+import 'package:instagram_clone/services/medias_manipulation/image_manipulation.dart';
 import 'package:instagram_clone/ui/common_elements/content_slider.dart';
-import 'package:instagram_clone/ui/common_elements/img_picker/publication_info_page.dart';
+import 'package:instagram_clone/ui/common_elements/add_publication/publication_info_page.dart';
 
 ///The PhotoFilterSelector Widget for apply filter from a selected set of filters
 class FilterSelectorPage extends StatefulWidget {
@@ -27,6 +26,7 @@ class FilterSelectorPage extends StatefulWidget {
 
 class _FilterSelectorPageState extends State<FilterSelectorPage> {
   final GlobalKey _globalKey = GlobalKey();
+  CarouselController _carouselController;
   final List<List<double>> filters = LIST_MATRIX_DOUBLES;
   final List<String> filtersName = LIST_MATRIX_NAMES;
   List<MediaFile> _medias;
@@ -37,6 +37,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
   void initState() {
     super.initState();
     _medias = widget.medias;
+    _carouselController = CarouselController();
   }
 
   @override
@@ -76,9 +77,11 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
   }
 
   Widget _contentSlider() => ContentSlider(
+      controller: _carouselController,
       contentBytesList: _medias.map((e) => e.bytes).toList(),
       isBytes: true,
       showDots: false,
+      initialPage: _selectedMedia,
       onMediaChanged: (int index) {
         setState(() {
           _selectedMedia = index;
@@ -92,7 +95,6 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
               ? _contentSlider()
               : ColorFiltered(
                   child: _contentSlider(),
-
                   // The filter matrices list doesn't have "normal" filter, so
                   // we need to remove 1 to match the indexes
                   colorFilter: ColorFilter.matrix(filters[_selectedFilter - 1]),
@@ -127,7 +129,7 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
                   Container(
                     padding: EdgeInsets.only(top: 5),
                     child: GestureDetector(
-                      child: _getFilteredImages(_selectedMedia)[index],
+                      child: _getFilteredThumbnails(_selectedMedia)[index],
                       onTap: () {
                         setState(() {
                           _selectedFilter = index;
@@ -142,46 +144,51 @@ class _FilterSelectorPageState extends State<FilterSelectorPage> {
         ),
       );
 
-  List<Widget> _getFilteredImages(int i) {
-    List<Widget> list = [];
+  List<Widget> _getFilteredThumbnails(int i) {
+    List<Widget> filteredThumbnails = [];
     // For the normal (no filter)
-    list.add(Image.memory(_medias[i].bytes, width: 100, height: 100));
+    filteredThumbnails
+        .add(Image.memory(_medias[i].bytes, width: 100, height: 100));
 
     for (var filter in filters)
-      list.add(
+      filteredThumbnails.add(
         ColorFiltered(
           colorFilter: ColorFilter.matrix(filter),
           child: Image.memory(_medias[i].bytes, width: 100, height: 100),
         ),
       );
-    return list;
+    return filteredThumbnails;
   }
 
+  // This is a really bad way of doing things
+  // But I'm not really good with image manipulation, matrices, filters etc...
+  // I've tried to use Image.colorOffset() and Image.convolution()
+  // but I had no idea what I was doing...
+  // Pls help
   void _onNextTap() async {
     List<Uint8List> filteredBytes = [];
-    // for (int i = 0; i < _medias.length; i++) {
-    //   setState(() {
-    //     _selectedMedia = i;
-    //   });
-    //   filteredBytes.add(await _applyFilter());
-    // }
+    filteredBytes.add(await ImageManipulation.getViewAsBytes(
+        repaintBoundary: _globalKey.currentContext.findRenderObject()));
+    int originalView = _selectedMedia;
+    for (int i = 0; i < _medias.length; i++) {
+      if (i != originalView) {
+        setState(() {
+          _selectedMedia = i;
+          _carouselController.jumpToPage(_selectedMedia);
+        });
+        // (it's a very bad design)
+        await Future.delayed(Duration(milliseconds: 100)).then(
+          (value) async => filteredBytes.add(
+            await ImageManipulation.getViewAsBytes(
+              repaintBoundary: _globalKey.currentContext.findRenderObject(),
+            ),
+          ),
+        );
+      }
+    }
 
-    var image = img.decodePng(_medias[0].bytes);
-    var image2 = img.encodePng(image);
-
-
-    filteredBytes.add(image2);
     Navigator.of(_globalKey.currentContext).push(MaterialPageRoute(
       builder: (context) => PublicationInfoPage(filteredBytes),
     ));
-  }
-
-  Future<Uint8List> _applyFilter() async {
-    RenderRepaintBoundary repaintBoundary =
-        _globalKey.currentContext.findRenderObject();
-    ui.Image boxImage = await repaintBoundary.toImage(pixelRatio: 1);
-    ByteData byteData =
-        await boxImage.toByteData(format: ui.ImageByteFormat.png);
-    return byteData.buffer.asUint8List();
   }
 }

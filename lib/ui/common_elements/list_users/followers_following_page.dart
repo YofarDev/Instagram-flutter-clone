@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/colors.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:instagram_clone/ui/common_elements/list_users/users_list.dart';
 import 'package:instagram_clone/ui/common_elements/loading_widget.dart';
+import 'package:instagram_clone/utils/utils.dart';
 
 class FollowersFollowingPage extends StatefulWidget {
   final User user;
@@ -82,17 +83,23 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
           controller: _tabController,
           children: [
             UsersList(
-                current: _current,
-                list: _users
-                    .where(
-                        (element) => widget.user.followers.contains(element.id))
-                    .toList()),
+              currentUserId: _current.id,
+              list: _users
+                  .where(
+                      (element) => widget.user.followers.contains(element.id))
+                  .toList(),
+              followButton: true,
+              onUserTap: (user) => Utils.navToUserDetails(context, user),
+            ),
             UsersList(
-                current: _current,
-                list: _users
-                    .where(
-                        (element) => widget.user.following.contains(element.id))
-                    .toList()),
+              currentUserId: _current.id,
+              list: _users
+                  .where(
+                      (element) => widget.user.following.contains(element.id))
+                  .toList(),
+              followButton: true,
+              onUserTap: (user) => Utils.navToUserDetails(context, user),
+            ),
           ],
         ),
       );
@@ -115,5 +122,4 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
       _isLoading = false;
     });
   }
-
 }

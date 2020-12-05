@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user.dart';
 import 'package:instagram_clone/res/strings.dart';
-import 'package:instagram_clone/services/user_services.dart';
+import 'package:instagram_clone/services/database/user_services.dart';
 import 'package:pop_bottom_menu/pop_bottom_menu.dart';
 
 class FollowButton extends StatefulWidget {
   final bool following;
   final User user;
   final bool showMenu;
-  final Function(bool, String) onStateChanged;
+  final Function(bool, User) onStateChanged;
 
   FollowButton({this.following, this.user, this.showMenu, this.onStateChanged});
 
@@ -81,7 +81,7 @@ class _FollowButtonState extends State<FollowButton> {
   void _follow() {
     setState(() {
       _followed = true;
-      widget.onStateChanged(_followed, _user.id);
+      widget.onStateChanged(_followed, _user);
       _user.following.add(UserServices.currentUserId);
     });
     UserServices.addFollowing(_user.id);
@@ -90,7 +90,7 @@ class _FollowButtonState extends State<FollowButton> {
   void _unfollow() {
     setState(() {
       _followed = false;
-      widget.onStateChanged(_followed, _user.id);
+      widget.onStateChanged(_followed, _user);
       _user.following.remove(UserServices.currentUserId);
     });
     UserServices.removeFollowing(_user.id);
